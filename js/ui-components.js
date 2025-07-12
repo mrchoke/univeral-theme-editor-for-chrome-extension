@@ -98,7 +98,45 @@ function createToolbox () {
 
   document.body.appendChild(toolbox)
 
+  // Setup scroll prevention after toolbox is added to DOM
+  setupToolboxScrollPrevention()
+
   debugLog('✅ Toolbox created successfully!')
+}
+
+/**
+ * Setup scroll prevention for toolbox
+ */
+function setupToolboxScrollPrevention () {
+  const toolboxBody = document.querySelector('.ote-body')
+  if (toolboxBody && !toolboxBody.hasAttribute('data-scroll-setup')) {
+    toolboxBody.addEventListener('wheel', (e) => {
+      e.stopPropagation()
+
+      // Get scroll information
+      const atTop = toolboxBody.scrollTop === 0
+      const atBottom = toolboxBody.scrollTop >= (toolboxBody.scrollHeight - toolboxBody.clientHeight - 1)
+
+      // Always prevent page scroll when scrolling inside toolbox
+      e.preventDefault()
+
+      // Handle internal scrolling
+      if (!atTop && !atBottom) {
+        // Normal scrolling
+        toolboxBody.scrollTop += e.deltaY * 0.5
+      } else if (!atTop && e.deltaY < 0) {
+        // Scrolling up and not at top
+        toolboxBody.scrollTop += e.deltaY * 0.5
+      } else if (!atBottom && e.deltaY > 0) {
+        // Scrolling down and not at bottom
+        toolboxBody.scrollTop += e.deltaY * 0.5
+      }
+    }, { passive: false })
+
+    // Mark as setup to prevent duplicate listeners
+    toolboxBody.setAttribute('data-scroll-setup', 'true')
+    debugLog('✅ Toolbox scroll prevention setup complete')
+  }
 }
 
 /**
@@ -107,8 +145,14 @@ function createToolbox () {
 function showToolbox () {
   const toolbox = document.getElementById('universal-theme-editor-toolbox')
   if (toolbox) {
-    toolbox.style.display = 'block'
+    toolbox.style.display = 'flex'
     toolbox.style.visibility = 'visible'
+
+    // Ensure scroll prevention is setup if not already done
+    const toolboxBody = document.querySelector('.ote-body')
+    if (toolboxBody && !toolboxBody.hasAttribute('data-scroll-setup')) {
+      setupToolboxScrollPrevention()
+    }
   }
 }
 
