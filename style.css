@@ -5,7 +5,7 @@
   right: 20px;
   width: 320px;
   max-height: 80vh;
-  overflow-y: auto;
+  overflow: hidden;
   background-color: #ffffff;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
@@ -16,6 +16,11 @@
   transition: transform 0.2s ease-in-out;
   display: none;
   /* Initially hidden */
+  resize: both;
+  min-width: 320px;
+  min-height: 400px;
+  max-width: 90vw;
+  max-height: 90vh;
 }
 
 #universal-theme-editor-toolbox.visible {
@@ -104,8 +109,9 @@
 /* --- Toolbox Body --- */
 .ote-body {
   padding: 16px;
-  max-height: 400px;
+  height: calc(100% - 60px);
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .ote-control-group {

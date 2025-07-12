@@ -617,7 +617,9 @@ function setupOptionsEventListeners () {
   // Debug mode checkbox
   const debugCheckbox = document.getElementById('ote-debug-mode-checkbox')
   if (debugCheckbox) {
-    // Load current debug state
+    // Load current debug state from localStorage and update global variable
+    const savedDebugMode = localStorage.getItem('ote-debug-mode') === 'true'
+    debugMode = savedDebugMode
     debugCheckbox.checked = debugMode
 
     debugCheckbox.addEventListener('change', (e) => {

@@ -87,6 +87,15 @@ function createToolbox () {
   const toolbox = document.createElement('div')
   toolbox.id = 'universal-theme-editor-toolbox'
   toolbox.innerHTML = toolboxHTML
+
+  // Make toolbox resizable
+  toolbox.style.resize = 'both'
+  toolbox.style.overflow = 'hidden'
+  toolbox.style.minWidth = '320px'
+  toolbox.style.minHeight = '400px'
+  toolbox.style.maxWidth = '90vw'
+  toolbox.style.maxHeight = '90vh'
+
   document.body.appendChild(toolbox)
 
   debugLog('✅ Toolbox created successfully!')
@@ -178,14 +187,16 @@ function getToolboxHTML () {
             <h3>Theme Editor</h3>
             <code class="ote-selector" id="ote-current-selector">No element selected</code>
             <div class="ote-header-buttons">
-                <button class="ote-action-btn" id="ote-undo-btn" title="Undo last change">↶</button>
                 <button class="ote-close-btn" id="ote-close-btn">&times;</button>
             </div>
         </div>
         <div class="ote-body">
             <div class="ote-control-group">
                 <div class="ote-control-row" style="justify-content: space-between; margin-bottom: 10px;">
-                    <button class="ote-action-btn" id="ote-reset-btn" title="Reset to original" style="background: #ffc107; color: #212529;">🔄 Reset</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="ote-action-btn" id="ote-reset-btn" title="Reset to original" style="background: #ffc107; color: #212529;">🔄 Reset</button>
+                        <button class="ote-action-btn" id="ote-undo-btn" title="Undo last change" style="background: #6c757d; color: white;">↶ Undo</button>
+                    </div>
                     <label style="display: flex; align-items: center; gap: 5px; font-size: 12px;">
                         <input type="checkbox" id="ote-debug-toggle" style="margin: 0;">
                         Debug Mode
