@@ -14,6 +14,20 @@ function debugLog (...args) {
   }
 }
 
+// Debug error function
+function debugError (...args) {
+  if (debugMode) {
+    console.error(...args)
+  }
+}
+
+// Debug warning function
+function debugWarn (...args) {
+  if (debugMode) {
+    console.warn(...args)
+  }
+}
+
 /**
  * Saves the current state to localStorage
  */
@@ -22,7 +36,7 @@ function saveState () {
     localStorage.setItem('universal-theme-editor-rules', JSON.stringify(cssRules))
     localStorage.setItem('universal-theme-editor-original', JSON.stringify(originalValues))
   } catch (e) {
-    console.warn('Could not save state:', e)
+    debugWarn('Could not save state:', e)
   }
 }
 
@@ -43,7 +57,7 @@ function loadState () {
       originalValues = JSON.parse(savedOriginal)
     }
   } catch (e) {
-    console.warn('Could not load state:', e)
+    debugWarn('Could not load state:', e)
   }
 }
 

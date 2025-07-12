@@ -2,12 +2,12 @@
  * Creates and shows the options panel
  */
 function showOptionsPanel () {
-  console.log('🔧 Creating options panel...')
+  debugLog('🔧 Creating options panel...')
 
   // Remove existing panel if any
   const existingPanel = document.getElementById('universal-theme-options-panel')
   if (existingPanel) {
-    console.log('⚠️ Removing existing panel')
+    debugLog('⚠️ Removing existing panel')
     existingPanel.remove()
   }
 
@@ -41,7 +41,7 @@ function showOptionsPanel () {
   `
 
   document.body.appendChild(optionsPanel)
-  console.log('✅ Options panel added to DOM')
+  debugLog('✅ Options panel added to DOM')
 
   // Make the panel draggable
   makePanelDraggable(optionsPanel)
@@ -55,7 +55,7 @@ function showOptionsPanel () {
   // Add hover effects to buttons
   addOptionsPanelHoverEffects(optionsPanel)
 
-  console.log('✅ Options panel setup complete!')
+  debugLog('✅ Options panel setup complete!')
 }
 
 /**
@@ -208,6 +208,41 @@ function getOptionsPanelHTML () {
           </p>
           <p style="margin: 0; font-size: 14px; color: #495057;">
             Total Rules: <strong id="ote-stats-rules" style="color: #007bff; font-weight: 600;">0</strong>
+          </p>
+        </div>
+      </div>
+      
+      <div class="ote-options-section" style="margin-bottom: 25px;">
+        <h4 style="
+          margin: 0 0 12px 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: #333;
+          border-bottom: 2px solid #f0f0f0;
+          padding-bottom: 6px;
+        ">🐛 Debug Settings</h4>
+        <div style="
+          background: #f8f9fa;
+          padding: 15px;
+          border-radius: 8px;
+          border-left: 4px solid #17a2b8;
+        ">
+          <label style="
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            color: #495057;
+          ">
+            <input type="checkbox" id="ote-debug-mode-checkbox" style="
+              margin: 0;
+              accent-color: #17a2b8;
+            ">
+            <span>Enable Debug Mode</span>
+          </label>
+          <p style="margin: 8px 0 0 0; font-size: 12px; color: #6c757d; line-height: 1.4;">
+            Shows detailed console logs for debugging purposes. Useful for developers and troubleshooting.
           </p>
         </div>
       </div>
@@ -476,11 +511,11 @@ function showAboutDialog () {
  * Sets up event listeners for the options panel
  */
 function setupOptionsEventListeners () {
-  console.log('🔧 Setting up options event listeners...')
+  debugLog('🔧 Setting up options event listeners...')
 
   const panel = document.getElementById('universal-theme-options-panel')
   if (!panel) {
-    console.error('❌ Options panel not found!')
+    debugError('❌ Options panel not found!')
     return
   }
 
@@ -488,18 +523,18 @@ function setupOptionsEventListeners () {
   const closeBtn = document.getElementById('ote-options-close-btn')
   if (closeBtn) {
     closeBtn.addEventListener('click', () => {
-      console.log('🔴 Closing options panel')
+      debugLog('🔴 Closing options panel')
       panel.remove()
     })
-    console.log('✅ Close button listener added')
+    debugLog('✅ Close button listener added')
   } else {
-    console.error('❌ Close button not found!')
+    debugError('❌ Close button not found!')
   }
 
   // Click outside to close
   document.addEventListener('click', function closeOnOutsideClick (e) {
     if (!panel.contains(e.target)) {
-      console.log('🔴 Closing panel - clicked outside')
+      debugLog('🔴 Closing panel - clicked outside')
       panel.remove()
       document.removeEventListener('click', closeOnOutsideClick)
     }
@@ -509,7 +544,7 @@ function setupOptionsEventListeners () {
   const startEditingBtn = document.getElementById('ote-start-editing-btn')
   if (startEditingBtn) {
     startEditingBtn.addEventListener('click', () => {
-      console.log('✏️ Start editing clicked')
+      debugLog('✏️ Start editing clicked')
 
       // Initialize full extension if not already done
       if (!document.getElementById('universal-theme-editor-toolbox')) {
@@ -519,67 +554,83 @@ function setupOptionsEventListeners () {
       panel.remove()
       showInstructions()
     })
-    console.log('✅ Start editing button listener added')
+    debugLog('✅ Start editing button listener added')
   } else {
-    console.error('❌ Start editing button not found!')
+    debugError('❌ Start editing button not found!')
   }
 
   // Export all button
   const exportAllBtn = document.getElementById('ote-export-all-btn')
   if (exportAllBtn) {
     exportAllBtn.addEventListener('click', () => {
-      console.log('📤 Export all clicked')
+      debugLog('📤 Export all clicked')
       exportCss()
       panel.remove()
     })
-    console.log('✅ Export all button listener added')
+    debugLog('✅ Export all button listener added')
   } else {
-    console.error('❌ Export all button not found!')
+    debugError('❌ Export all button not found!')
   }
 
   // Clear current page button
   const clearCurrentBtn = document.getElementById('ote-clear-current-btn')
   if (clearCurrentBtn) {
     clearCurrentBtn.addEventListener('click', () => {
-      console.log('🗑️ Clear current page clicked')
+      debugLog('🗑️ Clear current page clicked')
       if (confirm('Clear all styles for the current page? This cannot be undone.')) {
         clearCurrentPageStyles()
         updateOptionsStats()
       }
     })
-    console.log('✅ Clear current button listener added')
+    debugLog('✅ Clear current button listener added')
   } else {
-    console.error('❌ Clear current button not found!')
+    debugError('❌ Clear current button not found!')
   }
 
   // Clear all button
   const clearAllBtn = document.getElementById('ote-clear-all-btn')
   if (clearAllBtn) {
     clearAllBtn.addEventListener('click', () => {
-      console.log('🗑️ Clear all clicked')
+      debugLog('🗑️ Clear all clicked')
       if (confirm('Clear ALL saved styles? This cannot be undone.')) {
         clearAllStyles()
         updateOptionsStats()
       }
     })
-    console.log('✅ Clear all button listener added')
+    debugLog('✅ Clear all button listener added')
   } else {
-    console.error('❌ Clear all button not found!')
+    debugError('❌ Clear all button not found!')
   }
 
   // About button
   const aboutBtn = document.getElementById('ote-about-btn')
   if (aboutBtn) {
     aboutBtn.addEventListener('click', () => {
-      console.log('ℹ️ About clicked')
+      debugLog('ℹ️ About clicked')
       showAboutDialog()
     })
-    console.log('✅ About button listener added')
+    debugLog('✅ About button listener added')
   } else {
-    console.error('❌ About button not found!')
+    debugError('❌ About button not found!')
   }
 
-  console.log('✅ All options event listeners set up!')
+  // Debug mode checkbox
+  const debugCheckbox = document.getElementById('ote-debug-mode-checkbox')
+  if (debugCheckbox) {
+    // Load current debug state
+    debugCheckbox.checked = debugMode
+
+    debugCheckbox.addEventListener('change', (e) => {
+      debugMode = e.target.checked
+      localStorage.setItem('ote-debug-mode', debugMode.toString())
+      debugLog('🐛 Debug mode:', debugMode ? 'ON' : 'OFF')
+    })
+    debugLog('✅ Debug mode checkbox listener added')
+  } else {
+    debugError('❌ Debug mode checkbox not found!')
+  }
+
+  debugLog('✅ All options event listeners set up!')
 }
 
 /**

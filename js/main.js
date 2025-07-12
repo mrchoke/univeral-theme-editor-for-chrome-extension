@@ -1,4 +1,4 @@
-console.log('✅ Universal Theme Editor: Content script has loaded!')
+debugLog('✅ Universal Theme Editor: Content script has loaded!')
 
 /**
  * Initialize extension when DOM is ready

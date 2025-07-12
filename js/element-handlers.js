@@ -179,7 +179,7 @@ function resetToOriginal (element) {
   const original = originalValues[selector]
 
   if (!original) {
-    console.warn('⚠️ No original values found for element')
+    debugWarn('⚠️ No original values found for element')
     return
   }
 
@@ -198,7 +198,7 @@ function resetToOriginal (element) {
   populateToolbox(element)
 
   saveState()
-  console.log('🔄 Reset element to original values:', selector)
+  debugLog('🔄 Reset element to original values:', selector)
 }
 
 /**
@@ -211,7 +211,7 @@ function undoLastChange () {
   const history = currentHistory[selector]
 
   if (!history || Object.keys(history).length === 0) {
-    console.warn('⚠️ No changes to undo')
+    debugWarn('⚠️ No changes to undo')
     return
   }
 
@@ -233,5 +233,5 @@ function undoLastChange () {
   populateToolbox(activeElement)
   saveState()
 
-  console.log('↶ Undid last change for:', selector, lastProperty)
+  debugLog('↶ Undid last change for:', selector, lastProperty)
 }

@@ -213,7 +213,7 @@ function populateBorderControls (el, computedStyle) {
         borderColorPicker.value = colorValue
       }
     } catch (e) {
-      console.warn('Could not set border color:', e)
+      debugWarn('Could not set border color:', e)
     }
   }
 
@@ -260,7 +260,7 @@ function populateIndividualBorderControls (computedStyle) {
           colorPicker.value = color
         }
       } catch (e) {
-        console.warn(`Could not set border-${side}-color:`, e)
+        debugWarn(`Could not set border-${side}-color:`, e)
       }
     }
   })

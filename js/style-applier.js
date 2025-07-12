@@ -117,7 +117,7 @@ function clearCurrentPageStyles () {
   }
 
   saveState()
-  console.log(`🧹 Cleared ${selectorsToRemove.length} styles for current page`)
+  debugLog(`🧹 Cleared ${selectorsToRemove.length} styles for current page`)
 }
 
 /**
@@ -145,5 +145,5 @@ function clearAllStyles () {
   }
 
   saveState()
-  console.log('🧹 Cleared all saved styles')
+  debugLog('🧹 Cleared all saved styles')
 }
