@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+  <title>Universal Theme Editor</title>
+  <style>
+    body {
+      width: 300px;
+      min-height: 200px;
+      margin: 0;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      font-size: 18px;
+      margin: 0 0 10px 0;
+      font-weight: 600;
+    }
+
+    .header p {
+      font-size: 14px;
+      margin: 0;
+      opacity: 0.9;
+    }
+
+    .main-button {
+      width: 100%;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      margin-bottom: 15px;
+    }
+
+    .main-button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .main-button:active {
+      transform: translateY(0);
+    }
+
+    .features {
+      font-size: 12px;
+      opacity: 0.8;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .features ul {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0;
+    }
+
+    .features li {
+      margin: 5px 0;
+    }
+
+    .features li::before {
+      content: "✨ ";
+      margin-right: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <h1>🎨 Theme Editor</h1>
+    <p>Customize any website in real-time</p>
+  </div>
+
+  <button
+    id="openEditor"
+    class="main-button"
+  >
+    🚀 Open Theme Editor
+  </button>
+
+  <div class="features">
+    <ul>
+      <li>Real-time CSS editing</li>
+      <li>Element selection</li>
+      <li>Style export/import</li>
+      <li>Color picker & tools</li>
+    </ul>
+    <p>💡 You can also right-click on any page and select "Open Theme Editor"</p>
+  </div>
+
+  <script src="js/popup.js"></script>
+</body>
+
+</html>

@@ -9,7 +9,9 @@ function initializeExtension () {
 
   debugLog('🚀 Initializing Universal Theme Editor...')
   loadState()
-  createToggleButton() // Only create the toggle button initially
+
+  // Set up message listener for extension communication
+  setupMessageListener()
 
   // Set up global Alt+Click listener with capture phase
   document.addEventListener('mousedown', handleElementSelection, { capture: true, passive: false })
@@ -27,6 +29,31 @@ function initializeFullExtension () {
   createToolbox()
   setupEventListeners()
   debugLog('✅ Full extension features initialized!')
+}
+
+/**
+ * Setup message listener for extension communication
+ */
+function setupMessageListener () {
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    debugLog('📩 Received message:', request)
+
+    if (request.action === "openOptionsPanel") {
+      debugLog('🔧 Opening options panel from message...')
+
+      // Initialize full extension if not already done
+      if (!document.getElementById('universal-theme-editor-toolbox')) {
+        initializeFullExtension()
+      }
+
+      // Show the options panel
+      showOptionsPanel()
+
+      sendResponse({ status: "success" })
+    }
+
+    return true // Keep the message channel open for async response
+  })
 }
 
 // Check if DOM is already loaded, or wait for it
