@@ -309,7 +309,7 @@ function populateDimensionControls (width, height) {
  * @param {string} colorValue The color value to convert
  * @returns {string} Valid hex color or fallback
  */
-function safeColorToHex(colorValue, fallback = '#000000') {
+function safeColorToHex (colorValue, fallback = '#000000') {
   if (!colorValue || colorValue === 'none') {
     return fallback
   }
