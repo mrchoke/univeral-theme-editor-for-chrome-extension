@@ -19,7 +19,14 @@
         "<all_urls>"
       ],
       "js": [
-        "content_script.js"
+        "js/globals.js",
+        "js/ui-components.js",
+        "js/element-handlers.js",
+        "js/style-applier.js",
+        "js/event-listeners.js",
+        "js/toolbox-populators.js",
+        "js/options-panel.js",
+        "js/main.js"
       ],
       "css": [
         "style.css"

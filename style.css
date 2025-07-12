@@ -1,5 +1,5 @@
 /* --- Main Toolbox Container --- */
-#ojs-theme-editor-toolbox {
+#universal-theme-editor-toolbox {
   position: fixed;
   top: 20px;
   right: 20px;
@@ -18,7 +18,7 @@
   /* Initially hidden */
 }
 
-#ojs-theme-editor-toolbox.visible {
+#universal-theme-editor-toolbox.visible {
   display: block;
 }
 
