@@ -58,7 +58,19 @@ function clearAllInputs () {
   inputs.forEach(input => {
     if (input.type === 'checkbox') {
       input.checked = false
+    } else if (input.type === 'color') {
+      // Color inputs require valid hex format, use default color
+      input.value = '#000000'
+    } else if (input.type === 'range') {
+      // Range inputs should be set to their default/minimum value
+      input.value = input.min || '0'
+    } else if (input.tagName === 'SELECT') {
+      // Select elements should be set to first option or default
+      if (input.options && input.options.length > 0) {
+        input.selectedIndex = 0
+      }
     } else {
+      // Text inputs can safely be cleared
       input.value = ''
     }
   })
@@ -105,22 +117,12 @@ function populateColorInput (property, value) {
   }
 
   if (colorInput && value) {
-    try {
-      // Convert RGB to hex if needed
-      if (value.startsWith('rgb')) {
-        const rgb = value.match(/\d+/g)
-        if (rgb && rgb.length >= 3) {
-          const hex = '#' + rgb.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('')
-          colorInput.value = hex
-          debugLog(`🎨 Set ${property} color picker to:`, hex)
-        }
-      } else if (value.startsWith('#')) {
-        colorInput.value = value
-        debugLog(`🎨 Set ${property} color picker to:`, value)
-      }
-    } catch (e) {
-      debugLog(`⚠️ Could not set color for ${property}:`, e)
-    }
+    const hexColor = safeColorToHex(value, '#000000')
+    colorInput.value = hexColor
+    debugLog(`🎨 Set ${property} color picker to:`, hexColor)
+  } else if (colorInput) {
+    // If no value provided, set safe default
+    colorInput.value = '#000000'
   }
 }
 
@@ -201,20 +203,9 @@ function populateBorderControls (el, computedStyle) {
   // Border color
   const borderColorPicker = document.getElementById('ote-border-color-picker')
   if (borderColorPicker) {
-    try {
-      const colorValue = borderColor.split(' ')[0] || '#000000'
-      if (colorValue.startsWith('rgb')) {
-        const rgb = colorValue.match(/\d+/g)
-        if (rgb && rgb.length >= 3) {
-          const hex = '#' + rgb.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('')
-          borderColorPicker.value = hex
-        }
-      } else if (colorValue.startsWith('#')) {
-        borderColorPicker.value = colorValue
-      }
-    } catch (e) {
-      debugWarn('Could not set border color:', e)
-    }
+    const colorValue = borderColor.split(' ')[0] || '#000000'
+    const hexColor = safeColorToHex(colorValue, '#000000')
+    borderColorPicker.value = hexColor
   }
 
   // Border radius
@@ -249,19 +240,8 @@ function populateIndividualBorderControls (computedStyle) {
     if (widthSlider) widthSlider.value = extractNumericValue(width)
     if (styleSelect) styleSelect.value = style
     if (colorPicker) {
-      try {
-        if (color.startsWith('rgb')) {
-          const rgb = color.match(/\d+/g)
-          if (rgb && rgb.length >= 3) {
-            const hex = '#' + rgb.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('')
-            colorPicker.value = hex
-          }
-        } else if (color.startsWith('#')) {
-          colorPicker.value = color
-        }
-      } catch (e) {
-        debugWarn(`Could not set border-${side}-color:`, e)
-      }
+      const hexColor = safeColorToHex(color, '#000000')
+      colorPicker.value = hexColor
     }
   })
 
@@ -322,4 +302,54 @@ function populateDimensionControls (width, height) {
 
   // Height is handled by populateHeightInput
   populateHeightInput(height)
+}
+
+/**
+ * Safely converts any color value to a valid hex color for color input
+ * @param {string} colorValue The color value to convert
+ * @returns {string} Valid hex color or fallback
+ */
+function safeColorToHex(colorValue, fallback = '#000000') {
+  if (!colorValue || colorValue === 'none') {
+    return fallback
+  }
+
+  try {
+    // Already valid hex color
+    if (colorValue.startsWith('#') && /^#[0-9A-F]{6}$/i.test(colorValue)) {
+      return colorValue
+    }
+
+    // RGB/RGBA color
+    if (colorValue.startsWith('rgb')) {
+      const rgb = colorValue.match(/\d+/g)
+      if (rgb && rgb.length >= 3) {
+        return '#' + rgb.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('')
+      }
+    }
+
+    // Handle transparent
+    if (colorValue === 'transparent' || colorValue === 'rgba(0, 0, 0, 0)') {
+      return '#f0f0f0' // Light gray as visual indicator
+    }
+
+    // Try to resolve named colors
+    const tempElement = document.createElement('div')
+    tempElement.style.color = colorValue
+    document.body.appendChild(tempElement)
+    const computedColor = getComputedStyle(tempElement).color
+    document.body.removeChild(tempElement)
+
+    if (computedColor && computedColor.startsWith('rgb')) {
+      const rgb = computedColor.match(/\d+/g)
+      if (rgb && rgb.length >= 3) {
+        return '#' + rgb.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('')
+      }
+    }
+
+    return fallback
+  } catch (e) {
+    debugWarn('Error converting color:', colorValue, e)
+    return fallback
+  }
 }
