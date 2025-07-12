@@ -454,7 +454,8 @@ function showAboutDialog () {
         
         <h3 style="margin: 0 0 18px 0; color: #007bff; font-size: 20px;">🚀 How to Use</h3>
         <ol style="margin: 0 0 25px 0; padding-left: 25px; line-height: 1.8;">
-          <li style="margin-bottom: 8px;">Click the 🎨 button to open options</li>
+          <li style="margin-bottom: 8px;">Click the ED button on Chrome toolbar to open options</li>
+          <li style="margin-bottom: 8px;">Or right-click on any page and select "Open Theme Editor"</li>
           <li style="margin-bottom: 8px;">Select "Start Editing" or hold ${getModifierKeyName()} + Click on any element</li>
           <li style="margin-bottom: 8px;">Use the toolbox to modify colors, fonts, spacing, etc.</li>
           <li style="margin-bottom: 8px;">Export your changes when ready for production</li>
