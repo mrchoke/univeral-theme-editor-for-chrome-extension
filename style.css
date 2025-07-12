@@ -21,10 +21,12 @@
   min-height: 400px;
   max-width: 90vw;
   max-height: 90vh;
+  /* Flexbox layout for proper footer positioning */
+  flex-direction: column;
 }
 
 #universal-theme-editor-toolbox.visible {
-  display: block;
+  display: flex;
 }
 
 /* --- Toolbox Header --- */
@@ -36,6 +38,8 @@
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
   cursor: move;
+  flex-shrink: 0;
+  /* Prevent header from shrinking */
 }
 
 .ote-header h3 {
@@ -110,9 +114,12 @@
 /* --- Toolbox Body --- */
 .ote-body {
   padding: 16px;
-  height: calc(100% - 60px);
+  flex: 1;
+  /* Take up remaining space */
   overflow-y: auto;
   overflow-x: hidden;
+  min-height: 0;
+  /* Allow shrinking in flex container */
 }
 
 .ote-control-group {
@@ -571,3 +578,40 @@ label {
 #ote-debug-toggle {
   accent-color: #007bff;
 }
+
+/* --- Toolbox Footer --- */
+.ote-footer {
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  flex-shrink: 0;
+  /* Prevent footer from shrinking */
+  margin-top: auto;
+  /* Push footer to bottom */
+}
+
+.ote-export-btn {
+  width: 100%;
+  padding: 10px 16px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ote-export-btn:hover {
+  background: #218838;
+  transform: translateY(-1px);
+}
+
+.ote-export-btn:active {
+  transform: translateY(0);
+}
+
+/* --- Toolbox Body --- */

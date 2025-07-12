@@ -119,7 +119,7 @@ function getOptionsPanelHTML () {
           align-items: center;
           text-align: left;
         ">
-          <span style="margin-right: 10px; font-size: 16px;">✏️</span> Start Editing (Alt + Click)
+          <span style="margin-right: 10px; font-size: 16px;">✏️</span> Start Editing (${getModifierKeyName()} + Click)
         </button>
         <button class="ote-option-btn" id="ote-export-all-btn" style="
           width: 100%;
@@ -352,7 +352,7 @@ function showInstructions () {
       max-width: 300px;
     ">
       <strong>🎯 Ready to Edit!</strong><br>
-      Hold <kbd style="background:#fff;color:#333;padding:2px 6px;border-radius:3px;font-weight:bold;">Alt</kbd> 
+      Hold <kbd style="background:#fff;color:#333;padding:2px 6px;border-radius:3px;font-weight:bold;">${getModifierKeyName()}</kbd> 
       and click on any element to start styling it.
       <button style="
         background: none;
@@ -441,7 +441,7 @@ function showAboutDialog () {
         <h3 style="margin: 0 0 18px 0; color: #007bff; font-size: 20px;">✨ Features</h3>
         <ul style="margin: 0 0 25px 0; padding-left: 25px; line-height: 1.8;">
           <li style="margin-bottom: 8px;">Real-time CSS editing for any websites</li>
-          <li style="margin-bottom: 8px;">Visual element selection with Alt + Click</li>
+          <li style="margin-bottom: 8px;">Visual element selection with ${getModifierKeyName()} + Click</li>
           <li style="margin-bottom: 8px;">Live preview of style changes</li>
           <li style="margin-bottom: 8px;">Export custom CSS for production use</li>
           <li style="margin-bottom: 8px;">Persistent storage of your modifications</li>
@@ -450,7 +450,7 @@ function showAboutDialog () {
         <h3 style="margin: 0 0 18px 0; color: #007bff; font-size: 20px;">🚀 How to Use</h3>
         <ol style="margin: 0 0 25px 0; padding-left: 25px; line-height: 1.8;">
           <li style="margin-bottom: 8px;">Click the 🎨 button to open options</li>
-          <li style="margin-bottom: 8px;">Select "Start Editing" or hold Alt + Click on any element</li>
+          <li style="margin-bottom: 8px;">Select "Start Editing" or hold ${getModifierKeyName()} + Click on any element</li>
           <li style="margin-bottom: 8px;">Use the toolbox to modify colors, fonts, spacing, etc.</li>
           <li style="margin-bottom: 8px;">Export your changes when ready for production</li>
         </ol>
@@ -531,9 +531,10 @@ function setupOptionsEventListeners () {
     debugError('❌ Close button not found!')
   }
 
-  // Click outside to close
+  // Click outside to close (but not when resizing)
   document.addEventListener('click', function closeOnOutsideClick (e) {
-    if (!panel.contains(e.target)) {
+    // Don't close if clicking on resize handle or within panel
+    if (!panel.contains(e.target) && !e.target.closest('[style*="resize"]')) {
       debugLog('🔴 Closing panel - clicked outside')
       panel.remove()
       document.removeEventListener('click', closeOnOutsideClick)

@@ -72,6 +72,9 @@ function setupEventListeners () {
     })
   }
 
+  // Shadow controls
+  setupShadowEventListeners()
+
   // Height controls
   setupHeightEventListeners()
 
@@ -574,4 +577,233 @@ function applyGradientBackground () {
 
   debugLog('🎨 Applying gradient:', gradientValue)
   applyStyle('background', gradientValue)
+}
+
+/**
+ * Sets up event listeners for shadow controls
+ */
+function setupShadowEventListeners () {
+  // Text shadow controls
+  setupTextShadowEventListeners()
+
+  // Box shadow controls
+  setupBoxShadowEventListeners()
+}
+
+/**
+ * Sets up event listeners for text shadow controls
+ */
+function setupTextShadowEventListeners () {
+  const textShadowToggle = document.getElementById('ote-text-shadow-toggle')
+  const textShadowControls = document.getElementById('ote-text-shadow-controls')
+  const colorPicker = document.getElementById('ote-text-shadow-color-picker')
+  const colorText = document.getElementById('ote-text-shadow-color-text')
+  const distanceSlider = document.getElementById('ote-text-shadow-distance-slider')
+  const distanceText = document.getElementById('ote-text-shadow-distance-text')
+  const angleSlider = document.getElementById('ote-text-shadow-angle-slider')
+  const angleText = document.getElementById('ote-text-shadow-angle-text')
+  const blurSlider = document.getElementById('ote-text-shadow-blur-slider')
+  const blurText = document.getElementById('ote-text-shadow-blur-text')
+
+  // Toggle text shadow controls visibility
+  if (textShadowToggle && textShadowControls) {
+    textShadowToggle.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        textShadowControls.style.display = 'block'
+        applyTextShadow()
+      } else {
+        textShadowControls.style.display = 'none'
+        applyStyle('text-shadow', 'none')
+      }
+    })
+  }
+
+  // Color controls
+  if (colorPicker) {
+    colorPicker.addEventListener('input', (e) => {
+      if (colorText) colorText.value = e.target.value
+      if (textShadowToggle?.checked) applyTextShadow()
+    })
+  }
+
+  if (colorText) {
+    colorText.addEventListener('input', (e) => {
+      if (colorPicker) colorPicker.value = e.target.value
+      if (textShadowToggle?.checked) applyTextShadow()
+    })
+  }
+
+  // Distance controls
+  if (distanceSlider) {
+    distanceSlider.addEventListener('input', (e) => {
+      if (distanceText) distanceText.value = e.target.value
+      if (textShadowToggle?.checked) applyTextShadow()
+    })
+  }
+
+  if (distanceText) {
+    distanceText.addEventListener('input', (e) => {
+      if (distanceSlider) distanceSlider.value = e.target.value
+      if (textShadowToggle?.checked) applyTextShadow()
+    })
+  }
+
+  // Angle controls
+  if (angleSlider) {
+    angleSlider.addEventListener('input', (e) => {
+      if (angleText) angleText.value = e.target.value
+      if (textShadowToggle?.checked) applyTextShadow()
+    })
+  }
+
+  if (angleText) {
+    angleText.addEventListener('input', (e) => {
+      if (angleSlider) angleSlider.value = e.target.value
+      if (textShadowToggle?.checked) applyTextShadow()
+    })
+  }
+
+  // Blur controls
+  if (blurSlider) {
+    blurSlider.addEventListener('input', (e) => {
+      if (blurText) blurText.value = e.target.value
+      if (textShadowToggle?.checked) applyTextShadow()
+    })
+  }
+
+  if (blurText) {
+    blurText.addEventListener('input', (e) => {
+      if (blurSlider) blurSlider.value = e.target.value
+      if (textShadowToggle?.checked) applyTextShadow()
+    })
+  }
+}
+
+/**
+ * Sets up event listeners for box shadow controls
+ */
+function setupBoxShadowEventListeners () {
+  const boxShadowToggle = document.getElementById('ote-box-shadow-toggle')
+  const boxShadowControls = document.getElementById('ote-box-shadow-controls')
+  const colorPicker = document.getElementById('ote-box-shadow-color-picker')
+  const colorText = document.getElementById('ote-box-shadow-color-text')
+  const distanceSlider = document.getElementById('ote-box-shadow-distance-slider')
+  const distanceText = document.getElementById('ote-box-shadow-distance-text')
+  const angleSlider = document.getElementById('ote-box-shadow-angle-slider')
+  const angleText = document.getElementById('ote-box-shadow-angle-text')
+  const blurSlider = document.getElementById('ote-box-shadow-blur-slider')
+  const blurText = document.getElementById('ote-box-shadow-blur-text')
+
+  // Toggle box shadow controls visibility
+  if (boxShadowToggle && boxShadowControls) {
+    boxShadowToggle.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        boxShadowControls.style.display = 'block'
+        applyBoxShadow()
+      } else {
+        boxShadowControls.style.display = 'none'
+        applyStyle('box-shadow', 'none')
+      }
+    })
+  }
+
+  // Color controls
+  if (colorPicker) {
+    colorPicker.addEventListener('input', (e) => {
+      if (colorText) colorText.value = e.target.value
+      if (boxShadowToggle?.checked) applyBoxShadow()
+    })
+  }
+
+  if (colorText) {
+    colorText.addEventListener('input', (e) => {
+      if (colorPicker) colorPicker.value = e.target.value
+      if (boxShadowToggle?.checked) applyBoxShadow()
+    })
+  }
+
+  // Distance controls
+  if (distanceSlider) {
+    distanceSlider.addEventListener('input', (e) => {
+      if (distanceText) distanceText.value = e.target.value
+      if (boxShadowToggle?.checked) applyBoxShadow()
+    })
+  }
+
+  if (distanceText) {
+    distanceText.addEventListener('input', (e) => {
+      if (distanceSlider) distanceSlider.value = e.target.value
+      if (boxShadowToggle?.checked) applyBoxShadow()
+    })
+  }
+
+  // Angle controls
+  if (angleSlider) {
+    angleSlider.addEventListener('input', (e) => {
+      if (angleText) angleText.value = e.target.value
+      if (boxShadowToggle?.checked) applyBoxShadow()
+    })
+  }
+
+  if (angleText) {
+    angleText.addEventListener('input', (e) => {
+      if (angleSlider) angleSlider.value = e.target.value
+      if (boxShadowToggle?.checked) applyBoxShadow()
+    })
+  }
+
+  // Blur controls
+  if (blurSlider) {
+    blurSlider.addEventListener('input', (e) => {
+      if (blurText) blurText.value = e.target.value
+      if (boxShadowToggle?.checked) applyBoxShadow()
+    })
+  }
+
+  if (blurText) {
+    blurText.addEventListener('input', (e) => {
+      if (blurSlider) blurSlider.value = e.target.value
+      if (boxShadowToggle?.checked) applyBoxShadow()
+    })
+  }
+}
+
+/**
+ * Applies text shadow based on current settings
+ */
+function applyTextShadow () {
+  const color = document.getElementById('ote-text-shadow-color-picker')?.value || '#000000'
+  const distance = document.getElementById('ote-text-shadow-distance-slider')?.value || '2'
+  const angle = document.getElementById('ote-text-shadow-angle-slider')?.value || '135'
+  const blur = document.getElementById('ote-text-shadow-blur-slider')?.value || '2'
+
+  // Convert angle and distance to x,y coordinates
+  const angleRad = (angle * Math.PI) / 180
+  const x = Math.round(Math.cos(angleRad) * distance)
+  const y = Math.round(Math.sin(angleRad) * distance)
+
+  const shadowValue = `${x}px ${y}px ${blur}px ${color}`
+
+  debugLog('📝 Applying text shadow:', shadowValue)
+  applyStyle('text-shadow', shadowValue)
+}
+
+/**
+ * Applies box shadow based on current settings
+ */
+function applyBoxShadow () {
+  const color = document.getElementById('ote-box-shadow-color-picker')?.value || '#000000'
+  const distance = document.getElementById('ote-box-shadow-distance-slider')?.value || '4'
+  const angle = document.getElementById('ote-box-shadow-angle-slider')?.value || '135'
+  const blur = document.getElementById('ote-box-shadow-blur-slider')?.value || '8'
+
+  // Convert angle and distance to x,y coordinates
+  const angleRad = (angle * Math.PI) / 180
+  const x = Math.round(Math.cos(angleRad) * distance)
+  const y = Math.round(Math.sin(angleRad) * distance)
+
+  const shadowValue = `${x}px ${y}px ${blur}px ${color}`
+
+  debugLog('📦 Applying box shadow:', shadowValue)
+  applyStyle('box-shadow', shadowValue)
 }

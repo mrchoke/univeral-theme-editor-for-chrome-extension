@@ -265,6 +265,46 @@ function getToolboxHTML () {
             </div>
             
             <div class="ote-control-group">
+                <label for="ote-text-shadow">
+                    Text Shadow
+                    <label style="display: inline-flex; align-items: center; gap: 5px; margin-left: 10px; font-size: 12px; font-weight: normal;">
+                        <input type="checkbox" id="ote-text-shadow-toggle" style="margin: 0;">
+                        Enable
+                    </label>
+                </label>
+                
+                <!-- Text shadow controls (hidden by default) -->
+                <div id="ote-text-shadow-controls" class="ote-expanded-controls" style="display: none; margin-top: 10px;">
+                    <div class="ote-control-row" style="margin-bottom: 8px;">
+                        <label style="font-size: 12px; margin-right: 8px; min-width: 60px;">Color:</label>
+                        <input type="color" id="ote-text-shadow-color-picker" value="#000000">
+                        <input type="text" id="ote-text-shadow-color-text" placeholder="#000000">
+                    </div>
+                    
+                    <div class="ote-control-row" style="margin-bottom: 8px;">
+                        <label style="font-size: 12px; margin-right: 8px; min-width: 60px;">Distance:</label>
+                        <input type="range" id="ote-text-shadow-distance-slider" min="0" max="20" step="1" value="2" class="ote-slider">
+                        <input type="text" id="ote-text-shadow-distance-text" placeholder="2" style="width: 50px;">
+                        <span class="ote-unit">px</span>
+                    </div>
+                    
+                    <div class="ote-control-row" style="margin-bottom: 8px;">
+                        <label style="font-size: 12px; margin-right: 8px; min-width: 60px;">Direction:</label>
+                        <input type="range" id="ote-text-shadow-angle-slider" min="0" max="360" step="15" value="135" class="ote-slider">
+                        <input type="text" id="ote-text-shadow-angle-text" placeholder="135" style="width: 50px;">
+                        <span class="ote-unit">°</span>
+                    </div>
+                    
+                    <div class="ote-control-row">
+                        <label style="font-size: 12px; margin-right: 8px; min-width: 60px;">Blur:</label>
+                        <input type="range" id="ote-text-shadow-blur-slider" min="0" max="20" step="1" value="2" class="ote-slider">
+                        <input type="text" id="ote-text-shadow-blur-text" placeholder="2" style="width: 50px;">
+                        <span class="ote-unit">px</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="ote-control-group">
                 <label for="ote-padding">
                     Padding
                     <button class="ote-expand-btn" id="ote-padding-expand" title="Expand padding controls">⚙️</button>
@@ -492,6 +532,47 @@ function getToolboxHTML () {
                                 <input type="text" id="ote-border-bottom-right-radius-text" placeholder="0px">
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Box Shadow section with extra spacing -->
+            <div class="ote-control-group" style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #e9ecef;">
+                <label for="ote-box-shadow">
+                    Box Shadow
+                    <label style="display: inline-flex; align-items: center; gap: 5px; margin-left: 10px; font-size: 12px; font-weight: normal;">
+                        <input type="checkbox" id="ote-box-shadow-toggle" style="margin: 0;">
+                        Enable
+                    </label>
+                </label>
+                
+                <!-- Box shadow controls (hidden by default) -->
+                <div id="ote-box-shadow-controls" class="ote-expanded-controls" style="display: none; margin-top: 10px;">
+                    <div class="ote-control-row" style="margin-bottom: 8px;">
+                        <label style="font-size: 12px; margin-right: 8px; min-width: 60px;">Color:</label>
+                        <input type="color" id="ote-box-shadow-color-picker" value="#000000">
+                        <input type="text" id="ote-box-shadow-color-text" placeholder="#000000">
+                    </div>
+                    
+                    <div class="ote-control-row" style="margin-bottom: 8px;">
+                        <label style="font-size: 12px; margin-right: 8px; min-width: 60px;">Distance:</label>
+                        <input type="range" id="ote-box-shadow-distance-slider" min="0" max="30" step="1" value="4" class="ote-slider">
+                        <input type="text" id="ote-box-shadow-distance-text" placeholder="4" style="width: 50px;">
+                        <span class="ote-unit">px</span>
+                    </div>
+                    
+                    <div class="ote-control-row" style="margin-bottom: 8px;">
+                        <label style="font-size: 12px; margin-right: 8px; min-width: 60px;">Direction:</label>
+                        <input type="range" id="ote-box-shadow-angle-slider" min="0" max="360" step="15" value="135" class="ote-slider">
+                        <input type="text" id="ote-box-shadow-angle-text" placeholder="135" style="width: 50px;">
+                        <span class="ote-unit">°</span>
+                    </div>
+                    
+                    <div class="ote-control-row">
+                        <label style="font-size: 12px; margin-right: 8px; min-width: 60px;">Blur:</label>
+                        <input type="range" id="ote-box-shadow-blur-slider" min="0" max="30" step="1" value="8" class="ote-slider">
+                        <input type="text" id="ote-box-shadow-blur-text" placeholder="8" style="width: 50px;">
+                        <span class="ote-unit">px</span>
                     </div>
                 </div>
             </div>

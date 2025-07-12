@@ -141,3 +141,27 @@ function isImageElement (el) {
     el.tagName.toLowerCase() === 'svg' ||
     (el.style && el.style.backgroundImage && el.style.backgroundImage !== 'none')
 }
+
+/**
+ * Detects the user's operating system
+ */
+function detectOS () {
+  const userAgent = navigator.userAgent.toLowerCase()
+  if (userAgent.includes('mac')) {
+    return 'macOS'
+  } else if (userAgent.includes('win')) {
+    return 'Windows'
+  } else if (userAgent.includes('linux')) {
+    return 'Linux'
+  } else {
+    return 'Unknown'
+  }
+}
+
+/**
+ * Gets the appropriate modifier key name for the current OS
+ */
+function getModifierKeyName () {
+  const os = detectOS()
+  return os === 'macOS' ? 'Option' : 'Alt'
+}
