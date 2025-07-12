@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+  <title>Universal Theme Editor Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .test-btn {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 10px;
+      font-size: 14px;
+    }
+
+    .test-btn:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Universal Theme Editor Test Page</h1>
+    <p>This is a test page to verify the theme editor functionality.</p>
+
+    <h2>Test Features:</h2>
+    <ul>
+      <li>Larger, resizable option dialog</li>
+      <li>Draggable option dialog</li>
+      <li>Larger, readable about dialog</li>
+      <li>Draggable about dialog</li>
+      <li><strong>Debug mode control - all console.log statements are now controlled by debug mode checkbox</strong>
+      </li>
+      <li><strong>Fixed: Debug checkbox now correctly shows current state when dialog opens</strong></li>
+      <li><strong>Improved: Undo button moved next to Reset button</strong></li>
+      <li><strong>New: Toolbox is now resizable by user</strong></li>
+    </ul>
+
+    <div style="margin: 20px 0;">
+      <button
+        class="test-btn"
+        onclick="showOptionsPanel()"
+      >Show Options Panel</button>
+      <button
+        class="test-btn"
+        onclick="showAboutDialog()"
+      >Show About Dialog</button>
+      <button
+        class="test-btn"
+        onclick="testDebugMode()"
+      >Test Debug Mode</button>
+      <button
+        class="test-btn"
+        onclick="testToolbox()"
+      >Test Toolbox (Resizable)</button>
+    </div>
+
+    <div
+      id="debug-status"
+      style="
+        background: #e9ecef;
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+        font-family: monospace;
+        font-size: 12px;
+    "
+    >
+      Debug Mode Status: <span id="debug-mode-status">Loading...</span><br>
+      Open browser console to see debug logs when enabled.
+    </div>
+
+    <div id="test-content">
+      <h3>Sample Content</h3>
+      <p>This is some sample content that you can style using the theme editor.</p>
+      <div style="background: #e9ecef; padding: 15px; border-radius: 5px; margin: 10px 0;">
+        <strong>Sample Box:</strong> Try selecting this element and modifying its styles!
+      </div>
+    </div>
+  </div>
+
+  <!-- Include the JavaScript files -->
+  <script src="js/globals.js"></script>
+  <script src="js/options-panel.js"></script>
+  <script src="js/ui-components.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/event-listeners.js"></script>
+  <script src="js/element-handlers.js"></script>
+  <script src="js/style-applier.js"></script>
+  <script src="js/toolbox-populators.js"></script>
+
+  <script>
+    // Initialize the extension for testing
+    document.addEventListener('DOMContentLoaded', function () {
+      console.log('Test page loaded')
+
+      // Update debug status
+      updateDebugStatus()
+
+      // Add some test data to storage for statistics
+      if (typeof updateOptionsStats === 'function') {
+        // Mock some data for testing
+        localStorage.setItem('universalThemeEditor_globalStyles', JSON.stringify({
+          'test.com': {
+            '.sample': { 'color': 'red' },
+            '#test': { 'background': 'blue' }
+          }
+        }))
+      }
+    })
+
+    // Test debug mode functionality
+    function testDebugMode () {
+      console.log('Testing debug mode...')
+      debugLog('🐛 This is a debug log - should only show when debug mode is ON')
+      debugError('❌ This is a debug error - should only show when debug mode is ON')
+      debugWarn('⚠️ This is a debug warning - should only show when debug mode is ON')
+
+      alert('Debug test completed! Check browser console to see if debug messages appear based on debug mode setting.')
+    }
+
+    // Update debug status display
+    function updateDebugStatus () {
+      const statusEl = document.getElementById('debug-mode-status')
+      if (statusEl) {
+        const isDebugMode = localStorage.getItem('ote-debug-mode') === 'true'
+        statusEl.textContent = isDebugMode ? 'ENABLED' : 'DISABLED'
+        statusEl.style.color = isDebugMode ? '#28a745' : '#dc3545'
+        statusEl.style.fontWeight = 'bold'
+      }
+
+      // Update periodically
+      setTimeout(updateDebugStatus, 1000)
+    }
+
+    // Test toolbox functionality
+    function testToolbox () {
+      console.log('Testing toolbox...')
+
+      // Initialize full extension if not already done
+      if (!document.getElementById('universal-theme-editor-toolbox')) {
+        initializeFullExtension()
+      }
+
+      // Show toolbox
+      showToolbox()
+
+      alert('Toolbox opened! Try:\n\n1. Drag it by the header\n2. Resize it by dragging the bottom-right corner\n3. Notice Undo button is now next to Reset button\n4. Try Alt+Click on any element to style it')
+    }
+  </script>
+</body>
+
+</html>

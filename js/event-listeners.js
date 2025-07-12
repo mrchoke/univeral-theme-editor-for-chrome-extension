@@ -141,6 +141,9 @@ function setupInputEventListeners () {
 
   // Border controls
   setupBorderEventListeners()
+
+  // Gradient controls
+  setupGradientEventListeners()
 }
 
 /**
@@ -444,4 +447,131 @@ function setupHeightEventListeners () {
       }
     })
   }
+}
+
+/**
+ * Sets up event listeners for gradient controls
+ */
+function setupGradientEventListeners () {
+  const gradientToggle = document.getElementById('ote-gradient-toggle')
+  const gradientControls = document.getElementById('ote-gradient-controls')
+  const bgColorPicker = document.getElementById('ote-bg-color-picker')
+  const bgColorText = document.getElementById('ote-bg-color-text')
+  const bgColor2Picker = document.getElementById('ote-bg-color2-picker')
+  const bgColor2Text = document.getElementById('ote-bg-color2-text')
+  const angleSlider = document.getElementById('ote-gradient-angle-slider')
+  const angleText = document.getElementById('ote-gradient-angle-text')
+  const positionSlider = document.getElementById('ote-gradient-position-slider')
+  const positionText = document.getElementById('ote-gradient-position-text')
+
+  // Toggle gradient controls visibility
+  if (gradientToggle && gradientControls) {
+    gradientToggle.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        gradientControls.style.display = 'block'
+        // Apply gradient immediately if colors are set
+        applyGradientBackground()
+      } else {
+        gradientControls.style.display = 'none'
+        // Apply solid color instead
+        const solidColor = bgColorPicker?.value || bgColorText?.value || '#ffffff'
+        applyStyle('background', solidColor)
+      }
+    })
+  }
+
+  // First color controls
+  if (bgColorPicker) {
+    bgColorPicker.addEventListener('input', (e) => {
+      if (bgColorText) bgColorText.value = e.target.value
+      if (gradientToggle?.checked) {
+        applyGradientBackground()
+      } else {
+        applyStyle('background-color', e.target.value)
+      }
+    })
+  }
+
+  if (bgColorText) {
+    bgColorText.addEventListener('input', (e) => {
+      if (bgColorPicker) bgColorPicker.value = e.target.value
+      if (gradientToggle?.checked) {
+        applyGradientBackground()
+      } else {
+        applyStyle('background-color', e.target.value)
+      }
+    })
+  }
+
+  // Second color controls
+  if (bgColor2Picker) {
+    bgColor2Picker.addEventListener('input', (e) => {
+      if (bgColor2Text) bgColor2Text.value = e.target.value
+      if (gradientToggle?.checked) {
+        applyGradientBackground()
+      }
+    })
+  }
+
+  if (bgColor2Text) {
+    bgColor2Text.addEventListener('input', (e) => {
+      if (bgColor2Picker) bgColor2Picker.value = e.target.value
+      if (gradientToggle?.checked) {
+        applyGradientBackground()
+      }
+    })
+  }
+
+  // Angle controls
+  if (angleSlider) {
+    angleSlider.addEventListener('input', (e) => {
+      if (angleText) angleText.value = e.target.value
+      if (gradientToggle?.checked) {
+        applyGradientBackground()
+      }
+    })
+  }
+
+  if (angleText) {
+    angleText.addEventListener('input', (e) => {
+      if (angleSlider) angleSlider.value = e.target.value
+      if (gradientToggle?.checked) {
+        applyGradientBackground()
+      }
+    })
+  }
+
+  // Position controls
+  if (positionSlider) {
+    positionSlider.addEventListener('input', (e) => {
+      if (positionText) positionText.value = e.target.value
+      if (gradientToggle?.checked) {
+        applyGradientBackground()
+      }
+    })
+  }
+
+  if (positionText) {
+    positionText.addEventListener('input', (e) => {
+      if (positionSlider) positionSlider.value = e.target.value
+      if (gradientToggle?.checked) {
+        applyGradientBackground()
+      }
+    })
+  }
+}
+
+/**
+ * Applies gradient background based on current settings
+ */
+function applyGradientBackground () {
+  const color1 = document.getElementById('ote-bg-color-picker')?.value || '#ffffff'
+  const color2 = document.getElementById('ote-bg-color2-picker')?.value || '#000000'
+  const angle = document.getElementById('ote-gradient-angle-slider')?.value || '90'
+  const position = document.getElementById('ote-gradient-position-slider')?.value || '50'
+
+  const gradientValue = `linear-gradient(${angle}deg, ${color1} 0%, ${color2} ${position}%)`
+
+  debugLog('🎨 Applying gradient:', gradientValue)
+  applyStyle('background', gradientValue)
 }

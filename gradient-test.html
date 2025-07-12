@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+  <title>Universal Theme Editor - Gradient Background Test</title>
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 40px;
+      background: #f5f5f5;
+    }
+
+    .test-box {
+      width: 300px;
+      height: 200px;
+      border: 2px solid #ddd;
+      margin: 20px 0;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+    }
+
+    .gradient-preview {
+      width: 100%;
+      height: 100px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: linear-gradient(90deg, #007bff 0%, #0056b3 50%);
+      margin: 10px 0;
+    }
+
+    .info {
+      background: #e7f3ff;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #007bff;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>🎨 Universal Theme Editor - Gradient Background Test</h1>
+
+  <div class="info">
+    <h3>📋 Testing Gradient Background Feature</h3>
+    <p>Click the 🎨 button below to open the theme editor and test the new gradient background controls.</p>
+    <p><strong>New Features to Test:</strong></p>
+    <ul>
+      <li>✅ Gradient checkbox in Background Color section</li>
+      <li>✅ Second color picker (Color 2)</li>
+      <li>✅ Direction slider (0-360 degrees)</li>
+      <li>✅ Position slider (0-100%)</li>
+      <li>✅ Real-time gradient preview</li>
+    </ul>
+  </div>
+
+  <div
+    class="test-box"
+    id="test-element"
+  >
+    <h3>Test Element</h3>
+    <p>Select this element and try the new gradient background controls!</p>
+    <div class="gradient-preview"></div>
+    <p>This element should be selectable with Alt+Click to test gradient backgrounds.</p>
+  </div>
+
+  <div
+    class="test-box"
+    id="test-element-2"
+    style="background: #ffeecc;"
+  >
+    <h3>Another Test Element</h3>
+    <p>This element has a different background to test gradient functionality.</p>
+    <p>Try applying various gradients with different:</p>
+    <ul>
+      <li>Colors (Color 1 & Color 2)</li>
+      <li>Directions (0° to 360°)</li>
+      <li>Color positions (0% to 100%)</li>
+    </ul>
+  </div>
+
+  <div class="info">
+    <h3>🔧 Test Instructions:</h3>
+    <ol>
+      <li>Click the 🎨 button to open theme editor</li>
+      <li>Select "Start Editing" or hold Alt and click on any test element above</li>
+      <li>In the toolbox, find the "Background Color" section</li>
+      <li>Check the "Gradient" checkbox to reveal gradient controls</li>
+      <li>Experiment with:
+        <ul>
+          <li>Color 1 and Color 2 pickers</li>
+          <li>Direction slider (try 0°, 45°, 90°, 180°, etc.)</li>
+          <li>Position slider (controls color transition point)</li>
+        </ul>
+      </li>
+      <li>Uncheck "Gradient" to return to solid color mode</li>
+    </ol>
+  </div>
+
+  <!-- Load all extension scripts -->
+  <script src="js/globals.js"></script>
+  <script src="js/ui-components.js"></script>
+  <script src="js/event-listeners.js"></script>
+  <script src="js/element-handlers.js"></script>
+  <script src="js/style-applier.js"></script>
+  <script src="js/toolbox-populators.js"></script>
+  <script src="js/options-panel.js"></script>
+  <script src="js/main.js"></script>
+
+  <script>
+    // Initialize extension on page load
+    document.addEventListener('DOMContentLoaded', function () {
+      console.log('🎨 Initializing Universal Theme Editor for gradient testing...')
+      initializeExtension()
+
+      // Auto-enable debug mode for testing
+      debugMode = true
+      localStorage.setItem('ote-debug-mode', 'true')
+
+      // Test gradient functionality
+      console.log('🧪 Testing gradient functionality...')
+
+      // Function to test gradient creation
+      window.testGradient = function (color1, color2, angle, position) {
+        console.log(`🎨 Testing gradient: ${color1} → ${color2} at ${angle}° with position ${position}%`)
+        const gradientValue = `linear-gradient(${angle}deg, ${color1} 0%, ${color2} ${position}%)`
+        console.log('Generated gradient:', gradientValue)
+        return gradientValue
+      }
+
+      // Test different gradient combinations
+      console.log('📊 Gradient test results:')
+      console.log('1.', testGradient('#ff0000', '#0000ff', 90, 50))
+      console.log('2.', testGradient('#ffff00', '#ff00ff', 45, 30))
+      console.log('3.', testGradient('#00ff00', '#000000', 180, 70))
+
+      console.log('✅ Gradient testing environment ready!')
+    })
+
+    // Helper function to quickly test gradient on an element
+    window.quickGradientTest = function (elementId) {
+      const element = document.getElementById(elementId)
+      if (element) {
+        const gradient = 'linear-gradient(45deg, #007bff 0%, #0056b3 50%, #004085 100%)'
+        element.style.background = gradient
+        console.log(`🎨 Applied test gradient to ${elementId}:`, gradient)
+      }
+    };
+  </script>
+</body>
+
+</html>

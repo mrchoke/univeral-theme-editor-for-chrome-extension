@@ -219,10 +219,39 @@ function getToolboxHTML () {
             </div>
             
             <div class="ote-control-group">
-                <label for="ote-bg-color">Background Color</label>
+                <label for="ote-bg-color">
+                    Background Color
+                    <label style="display: inline-flex; align-items: center; gap: 5px; margin-left: 10px; font-size: 12px; font-weight: normal;">
+                        <input type="checkbox" id="ote-gradient-toggle" style="margin: 0;">
+                        Gradient
+                    </label>
+                </label>
                 <div class="ote-control-row">
                     <input type="color" id="ote-bg-color-picker">
                     <input type="text" id="ote-bg-color-text" placeholder="#ffffff">
+                </div>
+                
+                <!-- Gradient controls (hidden by default) -->
+                <div id="ote-gradient-controls" class="ote-expanded-controls" style="display: none; margin-top: 10px;">
+                    <div class="ote-control-row" style="margin-bottom: 8px;">
+                        <label style="font-size: 12px; margin-right: 8px;">Color 2:</label>
+                        <input type="color" id="ote-bg-color2-picker">
+                        <input type="text" id="ote-bg-color2-text" placeholder="#000000">
+                    </div>
+                    
+                    <div class="ote-control-row" style="margin-bottom: 8px;">
+                        <label style="font-size: 12px; margin-right: 8px; min-width: 60px;">Direction:</label>
+                        <input type="range" id="ote-gradient-angle-slider" min="0" max="360" step="15" value="90" class="ote-slider">
+                        <input type="text" id="ote-gradient-angle-text" placeholder="90" style="width: 50px;">
+                        <span class="ote-unit">°</span>
+                    </div>
+                    
+                    <div class="ote-control-row">
+                        <label style="font-size: 12px; margin-right: 8px; min-width: 60px;">Position:</label>
+                        <input type="range" id="ote-gradient-position-slider" min="0" max="100" step="5" value="50" class="ote-slider">
+                        <input type="text" id="ote-gradient-position-text" placeholder="50" style="width: 50px;">
+                        <span class="ote-unit">%</span>
+                    </div>
                 </div>
             </div>
             
@@ -360,7 +389,7 @@ function getToolboxHTML () {
                 </div>
                 <div class="ote-control-row">
                     <span style="font-size: 12px; color: #666;">Border Radius:</span>
-                    <input type="range" id="ote-border-radius-slider" min="0" max="50" step="1" class="ote-slider">
+                    <input type="range" id="ote-border-radius-slider" min="0" max="100" step="1" class="ote-slider">
                     <input type="text" id="ote-border-radius-text" placeholder="0px" style="width: 60px;">
                     <span class="ote-unit">px</span>
                 </div>
@@ -375,9 +404,14 @@ function getToolboxHTML () {
                             <input type="text" id="ote-border-top-width-text" placeholder="1px">
                             <select id="ote-border-top-style">
                                 <option value="solid">Solid</option>
-                                <option value="dashed">Dashed</option>
-                                <option value="dotted">Dotted</option>
-                                <option value="none">None</option>
+                        <option value="dashed">Dashed</option>
+                        <option value="dotted">Dotted</option>
+                        <option value="double">Double</option>
+                        <option value="groove">Groove</option>
+                        <option value="ridge">Ridge</option>
+                        <option value="inset">Inset</option>
+                        <option value="outset">Outset</option>
+                        <option value="none">None</option>
                             </select>
                             <input type="color" id="ote-border-top-color-picker">
                         </div>
@@ -387,9 +421,14 @@ function getToolboxHTML () {
                             <input type="text" id="ote-border-right-width-text" placeholder="1px">
                             <select id="ote-border-right-style">
                                 <option value="solid">Solid</option>
-                                <option value="dashed">Dashed</option>
-                                <option value="dotted">Dotted</option>
-                                <option value="none">None</option>
+                        <option value="dashed">Dashed</option>
+                        <option value="dotted">Dotted</option>
+                        <option value="double">Double</option>
+                        <option value="groove">Groove</option>
+                        <option value="ridge">Ridge</option>
+                        <option value="inset">Inset</option>
+                        <option value="outset">Outset</option>
+                        <option value="none">None</option>
                             </select>
                             <input type="color" id="ote-border-right-color-picker">
                         </div>
@@ -399,9 +438,14 @@ function getToolboxHTML () {
                             <input type="text" id="ote-border-bottom-width-text" placeholder="1px">
                             <select id="ote-border-bottom-style">
                                 <option value="solid">Solid</option>
-                                <option value="dashed">Dashed</option>
-                                <option value="dotted">Dotted</option>
-                                <option value="none">None</option>
+                        <option value="dashed">Dashed</option>
+                        <option value="dotted">Dotted</option>
+                        <option value="double">Double</option>
+                        <option value="groove">Groove</option>
+                        <option value="ridge">Ridge</option>
+                        <option value="inset">Inset</option>
+                        <option value="outset">Outset</option>
+                        <option value="none">None</option>
                             </select>
                             <input type="color" id="ote-border-bottom-color-picker">
                         </div>
@@ -411,9 +455,14 @@ function getToolboxHTML () {
                             <input type="text" id="ote-border-left-width-text" placeholder="1px">
                             <select id="ote-border-left-style">
                                 <option value="solid">Solid</option>
-                                <option value="dashed">Dashed</option>
-                                <option value="dotted">Dotted</option>
-                                <option value="none">None</option>
+                        <option value="dashed">Dashed</option>
+                        <option value="dotted">Dotted</option>
+                        <option value="double">Double</option>
+                        <option value="groove">Groove</option>
+                        <option value="ridge">Ridge</option>
+                        <option value="inset">Inset</option>
+                        <option value="outset">Outset</option>
+                        <option value="none">None</option>
                             </select>
                             <input type="color" id="ote-border-left-color-picker">
                         </div>
@@ -424,22 +473,22 @@ function getToolboxHTML () {
                         <div class="ote-corner-grid">
                             <div class="ote-corner-control">
                                 <label>Top-Left:</label>
-                                <input type="range" id="ote-border-top-left-radius-slider" min="0" max="50" step="1" class="ote-slider">
+                                <input type="range" id="ote-border-top-left-radius-slider" min="0" max="100" step="1" class="ote-slider">
                                 <input type="text" id="ote-border-top-left-radius-text" placeholder="0px">
                             </div>
                             <div class="ote-corner-control">
                                 <label>Top-Right:</label>
-                                <input type="range" id="ote-border-top-right-radius-slider" min="0" max="50" step="1" class="ote-slider">
+                                <input type="range" id="ote-border-top-right-radius-slider" min="0" max="100" step="1" class="ote-slider">
                                 <input type="text" id="ote-border-top-right-radius-text" placeholder="0px">
                             </div>
                             <div class="ote-corner-control">
                                 <label>Bottom-Left:</label>
-                                <input type="range" id="ote-border-bottom-left-radius-slider" min="0" max="50" step="1" class="ote-slider">
+                                <input type="range" id="ote-border-bottom-left-radius-slider" min="0" max="100" step="1" class="ote-slider">
                                 <input type="text" id="ote-border-bottom-left-radius-text" placeholder="0px">
                             </div>
                             <div class="ote-corner-control">
                                 <label>Bottom-Right:</label>
-                                <input type="range" id="ote-border-bottom-right-radius-slider" min="0" max="50" step="1" class="ote-slider">
+                                <input type="range" id="ote-border-bottom-right-radius-slider" min="0" max="100" step="1" class="ote-slider">
                                 <input type="text" id="ote-border-bottom-right-radius-text" placeholder="0px">
                             </div>
                         </div>

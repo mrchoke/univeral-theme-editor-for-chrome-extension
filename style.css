@@ -30,7 +30,8 @@
 /* --- Toolbox Header --- */
 .ote-header {
   padding: 12px 16px;
-  background-color: #f7f7f7;
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
   border-bottom: 1px solid #e0e0e0;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
@@ -41,14 +42,14 @@
   font-size: 14px;
   font-weight: 600;
   margin: 0;
-  color: #111;
+  color: white;
 }
 
 .ote-selector {
   font-family: 'Courier New', Courier, monospace;
   font-size: 12px;
-  color: #555;
-  background-color: #eee;
+  color: #333;
+  background-color: rgba(255, 255, 255, 0.9);
   padding: 2px 4px;
   border-radius: 4px;
   word-wrap: break-word;
@@ -62,11 +63,11 @@
   border: none;
   font-size: 20px;
   cursor: pointer;
-  color: #888;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .ote-close-btn:hover {
-  color: #111;
+  color: white;
 }
 
 /* --- Header Button Styles --- */
