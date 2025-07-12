@@ -111,26 +111,16 @@ function setupToolboxScrollPrevention () {
   const toolboxBody = document.querySelector('.ote-body')
   if (toolboxBody && !toolboxBody.hasAttribute('data-scroll-setup')) {
     toolboxBody.addEventListener('wheel', (e) => {
+      // Prevent page scroll when scrolling inside toolbox
       e.stopPropagation()
-
-      // Get scroll information
-      const atTop = toolboxBody.scrollTop === 0
-      const atBottom = toolboxBody.scrollTop >= (toolboxBody.scrollHeight - toolboxBody.clientHeight - 1)
-
-      // Always prevent page scroll when scrolling inside toolbox
       e.preventDefault()
 
-      // Handle internal scrolling
-      if (!atTop && !atBottom) {
-        // Normal scrolling
-        toolboxBody.scrollTop += e.deltaY * 0.5
-      } else if (!atTop && e.deltaY < 0) {
-        // Scrolling up and not at top
-        toolboxBody.scrollTop += e.deltaY * 0.5
-      } else if (!atBottom && e.deltaY > 0) {
-        // Scrolling down and not at bottom
-        toolboxBody.scrollTop += e.deltaY * 0.5
-      }
+      // Use native smooth scrolling instead of manual calculation
+      const scrollAmount = e.deltaY
+      toolboxBody.scrollBy({
+        top: scrollAmount,
+        behavior: 'instant' // Fast, responsive scrolling
+      })
     }, { passive: false })
 
     // Mark as setup to prevent duplicate listeners

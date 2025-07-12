@@ -387,11 +387,11 @@ function showAboutDialog () {
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 650px;
-      min-width: 500px;
-      max-width: 90vw;
-      min-height: 500px;
-      max-height: 90vh;
+      width: 750px;
+      min-width: 320px;
+      max-width: 95vw;
+      min-height: 400px;
+      max-height: 95vh;
       background: white;
       border: 1px solid #e0e0e0;
       border-radius: 12px;
@@ -402,6 +402,8 @@ function showAboutDialog () {
       overflow: hidden;
       resize: both;
       cursor: auto;
+      display: flex;
+      flex-direction: column;
     ">
       <div class="ote-about-header" style="
         padding: 25px;
@@ -410,6 +412,7 @@ function showAboutDialog () {
         text-align: center;
         cursor: move;
         position: relative;
+        flex-shrink: 0;
       ">
         <h2 style="margin: 0 0 10px 0; font-size: 28px;">🎨 Universal Dynamic Theme Editor</h2>
         <p style="margin: 0; opacity: 0.9; font-size: 16px;">Version 1.0</p>
@@ -432,11 +435,13 @@ function showAboutDialog () {
       
       <div style="
         padding: 25px;
-        height: calc(100% - 120px);
+        flex: 1;
         overflow-y: auto;
         overflow-x: hidden;
         font-size: 15px;
         line-height: 1.6;
+        min-height: 0;
+        -webkit-overflow-scrolling: touch;
       ">
         <h3 style="margin: 0 0 18px 0; color: #007bff; font-size: 20px;">✨ Features</h3>
         <ul style="margin: 0 0 25px 0; padding-left: 25px; line-height: 1.8;">
@@ -464,6 +469,55 @@ function showAboutDialog () {
           font-size: 15px;
         ">
           <strong>💡 Pro Tip:</strong> You can drag both the 🎨 button and this dialog anywhere on the screen! You can also resize this dialog by dragging from the bottom-right corner.
+        </div>
+        
+        <div style="
+          background: #f0f8ff;
+          padding: 25px;
+          border-radius: 8px;
+          border-left: 4px solid #28a745;
+          margin-bottom: 25px;
+          font-size: 14px;
+          line-height: 1.6;
+        ">
+          <h3 style="margin: 0 0 15px 0; color: #28a745; font-size: 18px;">📋 Disclaimer</h3>
+          <p style="margin: 0 0 15px 0;">
+            This extension was developed for the purpose of customizing CSS for the <strong>ThaiJO system</strong> and <strong>OJS3</strong> as a tool for journal editors under the ThaiJO system. However, the extension's capabilities are not limited to this use case and can be applied to any website that requires additional CSS customization and implementation.
+          </p>
+          <p style="margin: 0 0 15px 0;">
+            This project is a collaborative effort between two organizations: <strong>NECTEC</strong> (National Electronics and Computer Technology Center), <strong>NSTDA</strong> (National Science and Technology Development Agency), and <strong>TCI</strong> (Thai-Journal Citation Index Centre), <strong>ThaiJO</strong> (Thai Journals Online). Together, we are working to enhance the quality of online journals in Thailand.
+          </p>
+          <p style="margin: 0 0 15px 0;">
+            <strong>Lead Developer:</strong> Mr. Supphachoke Suntiwichaya, NECTEC, NSTDA
+          </p>
+          
+          <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+          
+          <h4 style="margin: 0 0 10px 0; color: #28a745; font-size: 16px;">About the Organizations</h4>
+          <ul style="margin: 0 0 15px 0; padding-left: 20px;">
+            <li><strong>NECTEC</strong> - National Electronics and Computer Technology Center</li>
+            <li><strong>NSTDA</strong> - National Science and Technology Development Agency</li>
+            <li><strong>TCI</strong> - Thai-Journal Citation Index Centre</li>
+            <li><strong>ThaiJO</strong> - Thai Journals Online</li>
+          </ul>
+          
+          <h4 style="margin: 0 0 10px 0; color: #28a745; font-size: 16px;">Purpose and Scope</h4>
+          <p style="margin: 0 0 10px 0;">This extension serves as a CSS customization tool primarily designed for:</p>
+          <ul style="margin: 0 0 15px 0; padding-left: 20px;">
+            <li>ThaiJO system interface enhancement</li>
+            <li>OJS3 (Open Journal Systems 3) styling improvements</li>
+            <li>General web CSS modification capabilities</li>
+          </ul>
+          
+          <h4 style="margin: 0 0 10px 0; color: #28a745; font-size: 16px;">Usage Rights</h4>
+          <p style="margin: 0 0 15px 0;">
+            This extension can be used on any website where CSS customization is needed, extending beyond its original purpose for journal management systems.
+          </p>
+          
+          <h4 style="margin: 0 0 10px 0; color: #28a745; font-size: 16px;">Collaboration</h4>
+          <p style="margin: 0;">
+            This project represents the collaborative spirit between Thailand's leading technology and academic indexing organizations to improve the digital publishing landscape for Thai academic journals.
+          </p>
         </div>
         
         <div style="text-align: center; margin-top: 30px;">
@@ -501,8 +555,28 @@ function showAboutDialog () {
   aboutDialog.appendChild(backdrop)
   document.body.appendChild(aboutDialog)
 
-  // Make the about dialog draggable
+  // Apply responsive styles after adding to DOM
   const aboutContent = aboutDialog.querySelector('#ote-about-content')
+  if (window.innerWidth <= 768) {
+    aboutContent.style.width = '95vw'
+    aboutContent.style.minWidth = '95vw'
+    aboutContent.style.height = '90vh'
+    aboutContent.style.maxHeight = '90vh'
+    aboutContent.style.padding = '0'
+
+    const aboutBody = aboutContent.querySelector('div:last-child')
+    if (aboutBody) {
+      aboutBody.style.padding = '15px'
+      aboutBody.style.fontSize = '14px'
+    }
+
+    const aboutHeader = aboutContent.querySelector('.ote-about-header')
+    if (aboutHeader) {
+      aboutHeader.style.padding = '15px'
+    }
+  }
+
+  // Make the about dialog draggable
   const aboutHeader = aboutDialog.querySelector('.ote-about-header')
   makeAboutDialogDraggable(aboutContent, aboutHeader)
 }
