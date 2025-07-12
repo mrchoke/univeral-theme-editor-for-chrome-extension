@@ -1,0 +1,506 @@
+/* --- Main Toolbox Container --- */
+#ojs-theme-editor-toolbox {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 320px;
+  max-height: 80vh;
+  overflow-y: auto;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 999999;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  color: #333;
+  transition: transform 0.2s ease-in-out;
+  display: none;
+  /* Initially hidden */
+}
+
+#ojs-theme-editor-toolbox.visible {
+  display: block;
+}
+
+/* --- Toolbox Header --- */
+.ote-header {
+  padding: 12px 16px;
+  background-color: #f7f7f7;
+  border-bottom: 1px solid #e0e0e0;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  cursor: move;
+}
+
+.ote-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  color: #111;
+}
+
+.ote-selector {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  color: #555;
+  background-color: #eee;
+  padding: 2px 4px;
+  border-radius: 4px;
+  word-wrap: break-word;
+}
+
+.ote-close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #888;
+}
+
+.ote-close-btn:hover {
+  color: #111;
+}
+
+/* --- Header Button Styles --- */
+.ote-header-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.ote-action-btn {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #495057;
+  transition: all 0.2s;
+  min-width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ote-action-btn:hover {
+  background: #e9ecef;
+  border-color: #007bff;
+  color: #007bff;
+  transform: scale(1.05);
+}
+
+.ote-action-btn:active {
+  transform: scale(0.95);
+}
+
+/* --- Toolbox Body --- */
+.ote-body {
+  padding: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.ote-control-group {
+  margin-bottom: 16px;
+}
+
+.ote-control-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.ote-control-group input[type="text"],
+.ote-control-group input[type="color"] {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.ote-control-group input[type="color"] {
+  padding: 2px;
+  height: 32px;
+}
+
+/* --- Enhanced Control Group Styles --- */
+.ote-control-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.ote-control-row input[type="text"] {
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.ote-control-row input[type="color"] {
+  width: 40px;
+  height: 32px;
+  flex-shrink: 0;
+  padding: 2px;
+}
+
+.ote-unit {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+/* --- Slider Styles --- */
+.ote-slider {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: #ddd;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.ote-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #007bff;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ote-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #007bff;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* --- Expand Button Styles --- */
+.ote-expand-btn {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-left: 8px;
+  transition: all 0.2s;
+}
+
+.ote-expand-btn:hover {
+  background: #e9ecef;
+  transform: scale(1.1);
+}
+
+/* --- Expanded Controls Styles --- */
+.ote-expanded-controls {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.ote-expanded-controls h4 {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 4px;
+}
+
+/* --- Border Side Controls --- */
+.ote-border-sides {
+  margin-bottom: 16px;
+}
+
+.ote-border-side {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding: 8px;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.ote-border-side label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #495057;
+  width: 50px;
+  flex-shrink: 0;
+}
+
+.ote-border-side input[type="range"] {
+  flex: 1;
+  min-width: 60px;
+}
+
+.ote-border-side input[type="text"] {
+  width: 50px;
+  flex-shrink: 0;
+}
+
+.ote-border-side select {
+  width: 70px;
+  flex-shrink: 0;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.ote-border-side input[type="color"] {
+  width: 30px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+/* --- Border Corner Controls --- */
+.ote-border-corners {
+  margin-top: 8px;
+}
+
+.ote-corner-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.ote-corner-control {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.ote-corner-control label {
+  font-size: 11px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.ote-corner-control input[type="range"] {
+  width: 100%;
+}
+
+.ote-corner-control input[type="text"] {
+  width: 100%;
+  font-size: 12px;
+  padding: 4px;
+}
+
+/* --- Select Styles --- */
+select {
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
+  background: white;
+  cursor: pointer;
+}
+
+select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+
+/* --- Options Panel Styles --- */
+.ote-options-header {
+  padding: 20px;
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  position: relative;
+}
+
+.ote-options-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.ote-options-header .ote-close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.ote-options-header .ote-close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.ote-options-body {
+  padding: 20px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.ote-options-section {
+  margin-bottom: 25px;
+}
+
+.ote-options-section:last-child {
+  margin-bottom: 0;
+}
+
+.ote-options-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 6px;
+}
+
+.ote-option-btn {
+  width: 100%;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #495057;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  text-align: left;
+}
+
+.ote-option-btn:hover {
+  background: #e9ecef;
+  border-color: #007bff;
+  color: #007bff;
+  transform: translateY(-1px);
+}
+
+.ote-option-btn span {
+  margin-right: 10px;
+  font-size: 16px;
+}
+
+.ote-option-btn.ote-danger-btn {
+  background: #f8f9fa;
+  border-color: #e9ecef;
+  color: #dc3545;
+}
+
+.ote-option-btn.ote-danger-btn:hover {
+  background: #f5c6cb;
+  border-color: #dc3545;
+  color: #721c24;
+}
+
+.ote-stats {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid #007bff;
+}
+
+.ote-stats p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #495057;
+}
+
+.ote-stats p:last-child {
+  margin-bottom: 0;
+}
+
+.ote-stats strong {
+  color: #007bff;
+  font-weight: 600;
+}
+
+/* --- Gradient Controls --- */
+.ote-gradient-controls {
+  margin-top: 8px;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+/* --- Shadow Controls --- */
+.ote-shadow-controls {
+  margin-top: 8px;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+/* --- Dimension Controls --- */
+.ote-dimension-controls {
+  margin-top: 8px;
+}
+
+/* --- Checkbox Styles --- */
+input[type="checkbox"] {
+  margin-right: 6px;
+  cursor: pointer;
+}
+
+label {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* --- Responsive adjustments --- */
+@media (max-width: 480px) {
+  #ojs-theme-editor-toolbox {
+    width: 300px;
+    right: 10px;
+  }
+
+  .ote-control-row {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .ote-control-row input[type="text"] {
+    width: 70px;
+  }
+}

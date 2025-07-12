@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "OJS3 Dynamic Theme Editor",
+  "version": "1.0",
+  "description": "เครื่องมือสำหรับปรับแต่ง CSS ของ OJS3 แบบ Real-time และ Export ผลลัพธ์เพื่อนำไปใช้งานจริง",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content_script.js"
+      ],
+      "css": [
+        "style.css"
+      ]
+    }
+  ]
+}
