@@ -87,12 +87,28 @@ function setupInputEventListeners () {
   ]
 
   basicControls.forEach(control => {
-    const textInput = document.getElementById(`ote-${control.prop.replace('-color', '')}-text`)
-    const colorInput = document.getElementById(`ote-${control.prop}-picker`)
-    const sliderInput = document.getElementById(`ote-${control.prop.replace('-color', '')}-slider`)
+    // Handle special case for background-color which uses different IDs
+    let textInputId, colorInputId, sliderInputId
+    if (control.prop === 'background-color') {
+      textInputId = 'ote-bg-color-text'
+      colorInputId = 'ote-bg-color-picker'
+      sliderInputId = 'ote-bg-color-slider'
+    } else {
+      textInputId = `ote-${control.prop.replace('-color', '')}-text`
+      colorInputId = `ote-${control.prop}-picker`
+      sliderInputId = `ote-${control.prop.replace('-color', '')}-slider`
+    }
+
+    const textInput = document.getElementById(textInputId)
+    const colorInput = document.getElementById(colorInputId)
+    const sliderInput = document.getElementById(sliderInputId)
 
     if (textInput) {
       textInput.addEventListener('input', (e) => {
+        // Skip background-color as it's handled separately in setupGradientEventListeners
+        if (control.prop === 'background-color') {
+          return
+        }
         applyStyle(control.prop, e.target.value)
         if (sliderInput && control.hasSlider) {
           sliderInput.value = extractNumericValue(e.target.value)
@@ -102,6 +118,10 @@ function setupInputEventListeners () {
 
     if (colorInput) {
       colorInput.addEventListener('input', (e) => {
+        // Skip background-color as it's handled separately in setupGradientEventListeners
+        if (control.prop === 'background-color') {
+          return
+        }
         applyStyle(control.prop, e.target.value)
         if (textInput) textInput.value = e.target.value
       })
@@ -2018,11 +2038,45 @@ function setupGradientEventListeners () {
   const positionSlider = document.getElementById('ote-gradient-position')
   const positionText = document.getElementById('ote-gradient-position-text')
 
+  // Also setup event listeners for main background color picker when gradient controls are added
+  const bgColorPicker = document.getElementById('ote-bg-color-picker')
+  const bgColorText = document.getElementById('ote-bg-color-text')
+
+  if (bgColorPicker) {
+    // Remove existing listeners to avoid duplicates
+    bgColorPicker.removeEventListener('input', bgColorPicker._gradientListener)
+    bgColorPicker._gradientListener = (e) => {
+      const gradientToggle = document.getElementById('ote-bg-gradient-toggle')
+      if (gradientToggle?.checked) {
+        updateGradient()
+      } else {
+        applyStyle('background-color', e.target.value)
+      }
+      if (bgColorText) bgColorText.value = e.target.value
+    }
+    bgColorPicker.addEventListener('input', bgColorPicker._gradientListener)
+  }
+
+  if (bgColorText) {
+    // Remove existing listeners to avoid duplicates
+    bgColorText.removeEventListener('input', bgColorText._gradientListener)
+    bgColorText._gradientListener = (e) => {
+      const gradientToggle = document.getElementById('ote-bg-gradient-toggle')
+      if (gradientToggle?.checked) {
+        updateGradient()
+      } else {
+        applyStyle('background-color', e.target.value)
+      }
+    }
+    bgColorText.addEventListener('input', bgColorText._gradientListener)
+  }
+
   if (gradientToggle) {
     gradientToggle.addEventListener('change', (e) => {
       if (gradientControls) {
         gradientControls.style.display = e.target.checked ? 'block' : 'none'
       }
+      // Always update when toggle changes to apply correct background
       updateGradient()
     })
   }
@@ -2058,9 +2112,14 @@ function setupGradientEventListeners () {
  */
 function updateGradient () {
   const gradientToggle = document.getElementById('ote-bg-gradient-toggle')
-  if (!gradientToggle?.checked) return
-
   const color1 = document.getElementById('ote-bg-color-picker')?.value || '#ffffff'
+
+  if (!gradientToggle?.checked) {
+    // Apply solid color when gradient is disabled
+    applyStyle('background-color', color1)
+    return
+  }
+
   const color2 = document.getElementById('ote-bg-color2-picker')?.value || '#000000'
   const direction = document.getElementById('ote-gradient-direction')?.value || 0
   const position = document.getElementById('ote-gradient-position')?.value || 50
