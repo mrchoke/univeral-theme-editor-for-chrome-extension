@@ -5,7 +5,7 @@ let activeElement = null
 let cssRules = {} // Stores all the custom CSS rules. e.g. { ".selector": { "color": "#ff0000" } }
 let originalValues = {} // Stores original values for undo
 let currentHistory = {} // Stores current session changes for reset
-let debugMode = false // Debug mode toggle
+let debugMode = false // Debug mode toggle - default OFF
 let elementHierarchy = [] // Store element hierarchy for selection
 const HIGHLIGHT_CLASS = 'ojs-editor-highlight'
 
@@ -18,15 +18,17 @@ function debugLog (...args) {
 
 // == INITIALIZATION ==
 function initializeExtension () {
+  // Load debug mode state first
+  debugMode = localStorage.getItem('ote-debug-mode') === 'true'
+
   debugLog('🚀 Initializing OJS Theme Editor...')
   loadState()
   createToggleButton() // Only create the toggle button initially
 
-  // Set up global Alt+Click listener
-  document.addEventListener('mousedown', handleElementSelection, true)
-
-  // Load debug mode state
-  debugMode = localStorage.getItem('ote-debug-mode') === 'true'
+  // Set up global Alt+Click listener with capture phase
+  document.addEventListener('mousedown', handleElementSelection, { capture: true, passive: false })
+  document.addEventListener('click', handleElementSelection, { capture: true, passive: false })
+  document.addEventListener('auxclick', handleElementSelection, { capture: true, passive: false })
 
   debugLog('✅ OJS Theme Editor initialized successfully!')
 }
@@ -45,12 +47,12 @@ function initializeFullExtension () {
  * Sets up event listeners for toolbox functionality only
  */
 function setupEventListeners () {
-  console.log('🔧 Setting up toolbox event listeners...')
+  debugLog('🔧 Setting up toolbox event listeners...')
 
   // Toolbox functionality
   const toolbox = document.getElementById('ojs-theme-editor-toolbox')
   if (!toolbox) {
-    console.error('❌ Toolbox not found!')
+    debugLog('❌ Toolbox not found!')
     return
   }
 
@@ -124,7 +126,7 @@ function setupEventListeners () {
   // Make toolbox draggable
   makeDraggable(toolbox, '.ote-header')
 
-  console.log('✅ Toolbox event listeners set up successfully!')
+  debugLog('✅ Toolbox event listeners set up successfully!')
 }
 
 /**
@@ -376,6 +378,100 @@ function toggleBorderExpand () {
 }
 
 /**
+ * Toggles the expanded padding controls
+ */
+function togglePaddingExpand () {
+  const expandedControls = document.getElementById('ote-padding-expanded')
+  const expandBtn = document.getElementById('ote-padding-expand')
+
+  if (expandedControls && expandBtn) {
+    const isExpanded = expandedControls.style.display !== 'none'
+    expandedControls.style.display = isExpanded ? 'none' : 'block'
+    expandBtn.textContent = isExpanded ? '⚙️' : '📐'
+    expandBtn.title = isExpanded ? 'Expand padding controls' : 'Collapse padding controls'
+
+    // Setup event listeners when first expanded
+    if (!isExpanded) {
+      setupPaddingEventListeners()
+    }
+  }
+}
+
+/**
+ * Toggles the expanded margin controls
+ */
+function toggleMarginExpand () {
+  const expandedControls = document.getElementById('ote-margin-expanded')
+  const expandBtn = document.getElementById('ote-margin-expand')
+
+  if (expandedControls && expandBtn) {
+    const isExpanded = expandedControls.style.display !== 'none'
+    expandedControls.style.display = isExpanded ? 'none' : 'block'
+    expandBtn.textContent = isExpanded ? '⚙️' : '📐'
+    expandBtn.title = isExpanded ? 'Expand margin controls' : 'Collapse margin controls'
+
+    // Setup event listeners when first expanded
+    if (!isExpanded) {
+      setupMarginEventListeners()
+    }
+  }
+}
+
+/**
+ * Sets up event listeners for individual padding sides
+ */
+function setupPaddingEventListeners () {
+  const sides = ['top', 'right', 'bottom', 'left']
+
+  sides.forEach(side => {
+    const slider = document.getElementById(`ote-padding-${side}-slider`)
+    const text = document.getElementById(`ote-padding-${side}-text`)
+
+    if (slider) {
+      slider.addEventListener('input', (e) => {
+        const value = e.target.value + 'px'
+        applyStyle(`padding-${side}`, value)
+        if (text) text.value = e.target.value
+      })
+    }
+
+    if (text) {
+      text.addEventListener('input', (e) => {
+        applyStyle(`padding-${side}`, e.target.value)
+        if (slider) slider.value = extractNumericValue(e.target.value)
+      })
+    }
+  })
+}
+
+/**
+ * Sets up event listeners for individual margin sides
+ */
+function setupMarginEventListeners () {
+  const sides = ['top', 'right', 'bottom', 'left']
+
+  sides.forEach(side => {
+    const slider = document.getElementById(`ote-margin-${side}-slider`)
+    const text = document.getElementById(`ote-margin-${side}-text`)
+
+    if (slider) {
+      slider.addEventListener('input', (e) => {
+        const value = e.target.value + 'px'
+        applyStyle(`margin-${side}`, value)
+        if (text) text.value = e.target.value
+      })
+    }
+
+    if (text) {
+      text.addEventListener('input', (e) => {
+        applyStyle(`margin-${side}`, e.target.value)
+        if (slider) slider.value = extractNumericValue(e.target.value)
+      })
+    }
+  })
+}
+
+/**
  * Creates a toggle button for easy access to the toolbox
  */
 function createToggleButton () {
@@ -413,11 +509,11 @@ function createToggleButton () {
     e.preventDefault()
     e.stopPropagation()
 
-    console.log('🖱️ Toggle button clicked, wasDragged:', toggleBtn.dataset.wasDragged)
+    debugLog('🖱️ Toggle button clicked, wasDragged:', toggleBtn.dataset.wasDragged)
 
     // Only show options if it wasn't dragged
     if (toggleBtn.dataset.wasDragged !== 'true') {
-      console.log('✅ Showing options panel...')
+      debugLog('✅ Showing options panel...')
 
       // Initialize full extension if not already done
       if (!document.getElementById('ojs-theme-editor-toolbox')) {
@@ -426,7 +522,7 @@ function createToggleButton () {
 
       showOptionsPanel()
     } else {
-      console.log('⚠️ Button was dragged, not showing panel')
+      debugLog('⚠️ Button was dragged, not showing panel')
     }
 
     // Reset drag state after a delay
@@ -444,7 +540,7 @@ function createToggleButton () {
   })
 
   document.body.appendChild(toggleBtn)
-  console.log('✅ Toggle button created!')
+  debugLog('✅ Toggle button created!')
 }
 
 // Check if DOM is already loaded, or wait for it
@@ -461,11 +557,11 @@ if (document.readyState === 'loading') {
  * Creates the toolbox UI and injects it into the page.
  */
 function createToolbox () {
-  console.log('🛠️ Creating toolbox...')
+  debugLog('🛠️ Creating toolbox...')
 
   // Check if toolbox already exists
   if (document.getElementById('ojs-theme-editor-toolbox')) {
-    console.log('⚠️ Toolbox already exists, skipping creation')
+    debugLog('⚠️ Toolbox already exists, skipping creation')
     return
   }
 
@@ -741,7 +837,7 @@ function createToolbox () {
   toolbox.innerHTML = toolboxHTML
   document.body.appendChild(toolbox)
 
-  console.log('✅ Toolbox created successfully!')
+  debugLog('✅ Toolbox created successfully!')
 }
 
 /**
@@ -772,7 +868,7 @@ function handleElementSelection (e) {
     target.closest('#ojs-theme-options-panel') ||
     target.closest('#ote-about-dialog') ||
     target.closest('#ote-instruction')) {
-    console.log('⚠️ Clicked on extension UI, ignoring...')
+    debugLog('⚠️ Clicked on extension UI, ignoring...')
     return
   }
 
@@ -852,11 +948,11 @@ function generateSelector (el) {
  */
 function applyStyle (property, value) {
   if (!activeElement) {
-    console.warn('⚠️ No active element selected')
+    debugLog('⚠️ No active element selected')
     return
   }
 
-  console.log(`🎨 Applying style: ${property} = ${value}`)
+  debugLog(`🎨 Applying style: ${property} = ${value}`)
 
   // Update the CSS rules state
   const selector = generateSelector(activeElement)
@@ -906,7 +1002,7 @@ function updateInputFields (property, value) {
  * @param {HTMLElement} el The selected element.
  */
 function populateToolbox (el) {
-  console.log('📝 Populating toolbox for new element...')
+  debugLog('📝 Populating toolbox for new element...')
 
   // Clear all input fields first to avoid showing old values
   clearAllInputs()
@@ -926,7 +1022,7 @@ function populateToolbox (el) {
   const width = computedStyle.getPropertyValue('width')
   const height = computedStyle.getPropertyValue('height')
 
-  console.log('📝 Current element values:', {
+  debugLog('📝 Current element values:', {
     color, backgroundColor, fontSize, padding, margin, border, borderRadius, boxShadow, width, height, isImage
   })
 
@@ -1008,7 +1104,7 @@ function populateColorInput (property, value) {
 
   if (textInput) {
     textInput.value = value
-    console.log(`📝 Set ${property} text input to:`, value)
+    debugLog(`📝 Set ${property} text input to:`, value)
   }
 
   if (colorInput && value) {
@@ -1019,11 +1115,11 @@ function populateColorInput (property, value) {
         if (rgb && rgb.length >= 3) {
           const hex = '#' + rgb.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('')
           colorInput.value = hex
-          console.log(`🎨 Set ${property} color picker to:`, hex)
+          debugLog(`🎨 Set ${property} color picker to:`, hex)
         }
       } else if (value.startsWith('#')) {
         colorInput.value = value
-        console.log(`🎨 Set ${property} color picker to:`, value)
+        debugLog(`🎨 Set ${property} color picker to:`, value)
       }
     } catch (e) {
       console.warn('Could not set color picker value:', e)
@@ -1040,15 +1136,831 @@ function populateValueInput (property, value) {
 
   if (textInput) {
     textInput.value = value
-    console.log(`📝 Set ${property} text input to:`, value)
+    debugLog(`📝 Set ${property} text input to:`, value)
   }
 
   if (sliderInput) {
     const numericValue = extractNumericValue(value)
     sliderInput.value = numericValue
-    console.log(`🎚️ Set ${property} slider to:`, numericValue)
+    debugLog(`🎚️ Set ${property} slider to:`, numericValue)
   }
 }
+
+/**
+ * Populates height input with current value
+ * @param {string} height Current height value
+ */
+function populateHeightInput (height) {
+  const heightText = document.getElementById('ote-height-text')
+  const heightSlider = document.getElementById('ote-height-slider')
+  const heightUnit = document.getElementById('ote-height-unit')
+
+  if (heightText) {
+    const numericValue = extractNumericValue(height)
+    const unit = height.replace(/[\d.]/g, '') || 'px'
+
+    heightText.value = numericValue || 'auto'
+
+    if (heightUnit) {
+      heightUnit.value = height === 'auto' ? 'auto' : unit
+    }
+
+    if (heightSlider && numericValue > 0) {
+      heightSlider.value = Math.min(numericValue, 500)
+    }
+  }
+}
+
+/**
+ * Sets up event listeners for height controls
+ */
+function setupHeightEventListeners () {
+  const heightSlider = document.getElementById('ote-height-slider')
+  const heightText = document.getElementById('ote-height-text')
+  const heightUnit = document.getElementById('ote-height-unit')
+
+  if (heightSlider) {
+    heightSlider.addEventListener('input', (e) => {
+      const unit = heightUnit?.value || 'px'
+      const value = unit === 'auto' ? 'auto' : e.target.value + unit
+      applyStyle('height', value)
+      if (heightText && unit !== 'auto') heightText.value = e.target.value
+    })
+  }
+
+  if (heightText) {
+    heightText.addEventListener('input', (e) => {
+      const value = e.target.value
+      if (value === 'auto') {
+        applyStyle('height', 'auto')
+        if (heightUnit) heightUnit.value = 'auto'
+      } else {
+        const unit = heightUnit?.value || 'px'
+        const finalValue = unit === 'auto' ? value : value + unit
+        applyStyle('height', finalValue)
+        if (heightSlider) heightSlider.value = extractNumericValue(value)
+      }
+    })
+  }
+
+  if (heightUnit) {
+    heightUnit.addEventListener('change', (e) => {
+      const unit = e.target.value
+      if (unit === 'auto') {
+        applyStyle('height', 'auto')
+        if (heightText) heightText.value = 'auto'
+      } else {
+        const numericValue = heightText?.value || '100'
+        const value = numericValue + unit
+        applyStyle('height', value)
+      }
+    })
+  }
+}
+
+
+/**
+ * Exports the collected CSS rules as a .css file.
+ */
+function exportCss () {
+  let cssString = '/* --- Custom OJS Theme Styles --- */\n\n'
+  for (const selector in cssRules) {
+    cssString += `${selector} {\n`
+    for (const property in cssRules[selector]) {
+      const value = cssRules[selector][property]
+      cssString += `    ${property}: ${value} !important;\n`
+    }
+    cssString += '}\n\n'
+  }
+
+  const blob = new Blob([cssString], { type: 'text/css' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'custom-ojs-theme.css'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+/**
+ * Sets up event listeners for dimension controls (width/height for images)
+ */
+function setupDimensionEventListeners () {
+  // Width controls
+  const widthSlider = document.getElementById('ote-width-slider')
+  const widthText = document.getElementById('ote-width-text')
+  const widthUnit = document.getElementById('ote-width-unit')
+
+  if (widthSlider) {
+    widthSlider.addEventListener('input', (e) => {
+      const unit = widthUnit?.value || 'px'
+      const value = e.target.value + unit
+      applyStyle('width', value)
+      if (widthText) widthText.value = e.target.value
+    })
+  }
+
+  if (widthText) {
+    widthText.addEventListener('input', (e) => {
+      const unit = widthUnit?.value || 'px'
+      const value = e.target.value + unit
+      applyStyle('width', value)
+      if (widthSlider) widthSlider.value = extractNumericValue(e.target.value)
+    })
+  }
+
+  if (widthUnit) {
+    widthUnit.addEventListener('change', (e) => {
+      const unit = e.target.value
+      const numericValue = widthText?.value || '100'
+      const value = numericValue + unit
+      applyStyle('width', value)
+    })
+  }
+
+  // Height controls already handled by setupHeightEventListeners
+}
+
+/**
+ * Populates dimension controls for images
+ * @param {string} width Current width value
+ * @param {string} height Current height value
+ */
+function populateDimensionControls (width, height) {
+  // Width controls
+  const widthText = document.getElementById('ote-width-text')
+  const widthSlider = document.getElementById('ote-width-slider')
+  const widthUnit = document.getElementById('ote-width-unit')
+
+  if (widthText) {
+    const numericValue = extractNumericValue(width)
+    const unit = width.replace(/[\d.]/g, '') || 'px'
+
+    widthText.value = numericValue || '100'
+
+    if (widthUnit) {
+      widthUnit.value = unit
+    }
+
+    if (widthSlider && numericValue > 0) {
+      widthSlider.value = Math.min(numericValue, 500)
+    }
+  }
+
+  // Height is handled by populateHeightInput
+  populateHeightInput(height)
+}
+
+/**
+ * Populates shadow controls
+ * @param {string} boxShadow Current box-shadow value
+ */
+function populateShadowControls (boxShadow) {
+  const shadowText = document.getElementById('ote-shadow-text')
+  const shadowToggle = document.getElementById('ote-shadow-toggle')
+
+  if (shadowText) {
+    shadowText.value = boxShadow || 'none'
+  }
+
+  if (shadowToggle) {
+    shadowToggle.checked = boxShadow && boxShadow !== 'none'
+  }
+}
+
+/**
+ * Checks if an element is an image
+ * @param {HTMLElement} el The element to check
+ * @returns {boolean} True if the element is an image
+ */
+function isImageElement (el) {
+  return el.tagName.toLowerCase() === 'img' ||
+    el.tagName.toLowerCase() === 'svg' ||
+    (el.style && el.style.backgroundImage && el.style.backgroundImage !== 'none')
+}
+
+/**
+ * Extracts numeric value from a CSS value string
+ * @param {string} value CSS value (e.g., "16px", "1.5em")
+ * @returns {number} Numeric part of the value
+ */
+function extractNumericValue (value) {
+  if (!value || value === 'auto' || value === 'none') return 0
+  const match = value.toString().match(/[\d.]+/)
+  return match ? parseFloat(match[0]) : 0
+}
+
+/**
+ * Populates background input with special handling for background-color
+ */
+function populateBackgroundInput (backgroundColor) {
+  populateColorInput('background-color', backgroundColor)
+}
+
+/**
+ * Builds element hierarchy for multi-level selection
+ * @param {HTMLElement} element The selected element
+ */
+function buildElementHierarchy (element) {
+  elementHierarchy = []
+  let current = element
+
+  while (current && current !== document.body) {
+    elementHierarchy.unshift({
+      element: current,
+      selector: generateSelector(current),
+      tagName: current.tagName.toLowerCase(),
+      classes: Array.from(current.classList).join(' '),
+      id: current.id || ''
+    })
+    current = current.parentElement
+  }
+
+  // Update hierarchy selector
+  updateHierarchySelector()
+}
+
+/**
+ * Updates the hierarchy selector dropdown
+ */
+function updateHierarchySelector () {
+  const hierarchySelect = document.getElementById('ote-hierarchy-select')
+  const hierarchyGroup = document.getElementById('ote-element-hierarchy')
+
+  if (!hierarchySelect || !hierarchyGroup) return
+
+  // Clear existing options
+  hierarchySelect.innerHTML = '<option value="">Select element level...</option>'
+
+  if (elementHierarchy.length > 1) {
+    hierarchyGroup.style.display = 'block'
+
+    elementHierarchy.forEach((item, index) => {
+      const option = document.createElement('option')
+      option.value = index
+      option.textContent = `${item.tagName}${item.id ? '#' + item.id : ''}${item.classes ? '.' + item.classes.split(' ')[0] : ''}`
+      hierarchySelect.appendChild(option)
+    })
+
+    // Select the current element (last in hierarchy)
+    hierarchySelect.value = elementHierarchy.length - 1
+  } else {
+    hierarchyGroup.style.display = 'none'
+  }
+}
+
+/**
+ * Stores original values for undo functionality
+ * @param {HTMLElement} element The element to store values for
+ */
+function storeOriginalValues (element) {
+  const selector = generateSelector(element)
+
+  if (!originalValues[selector]) {
+    const computedStyle = getComputedStyle(element)
+    originalValues[selector] = {
+      color: computedStyle.getPropertyValue('color'),
+      backgroundColor: computedStyle.getPropertyValue('background-color'),
+      fontSize: computedStyle.getPropertyValue('font-size'),
+      padding: computedStyle.getPropertyValue('padding'),
+      margin: computedStyle.getPropertyValue('margin'),
+      border: computedStyle.getPropertyValue('border'),
+      borderRadius: computedStyle.getPropertyValue('border-radius'),
+      height: computedStyle.getPropertyValue('height'),
+      width: computedStyle.getPropertyValue('width'),
+      boxShadow: computedStyle.getPropertyValue('box-shadow')
+    }
+  }
+}
+
+/**
+ * Applies all CSS rules to the page
+ */
+function applyAllRules () {
+  let styleEl = document.getElementById('ojs-dynamic-styles')
+  if (!styleEl) {
+    styleEl = document.createElement('style')
+    styleEl.id = 'ojs-dynamic-styles'
+    document.head.appendChild(styleEl)
+  }
+
+  let cssText = ''
+  for (const selector in cssRules) {
+    cssText += `${selector} {\n`
+    for (const property in cssRules[selector]) {
+      cssText += `  ${property}: ${cssRules[selector][property]} !important;\n`
+    }
+    cssText += '}\n'
+  }
+
+  styleEl.textContent = cssText
+}
+
+/**
+ * Shows the toolbox
+ */
+function showToolbox () {
+  const toolbox = document.getElementById('ojs-theme-editor-toolbox')
+  if (toolbox) {
+    toolbox.style.display = 'block'
+    toolbox.style.visibility = 'visible'
+  }
+}
+
+/**
+ * Hides the toolbox
+ */
+function hideToolbox () {
+  const toolbox = document.getElementById('ojs-theme-editor-toolbox')
+  if (toolbox) {
+    toolbox.style.display = 'none'
+  }
+
+  // Remove highlight from active element
+  if (activeElement) {
+    activeElement.classList.remove(HIGHLIGHT_CLASS)
+    activeElement = null
+  }
+}
+
+/**
+ * Undoes the last change
+ */
+function undoLastChange () {
+  if (!activeElement) return
+
+  const selector = generateSelector(activeElement)
+  if (originalValues[selector]) {
+    // Restore original values
+    cssRules[selector] = {}
+    applyAllRules()
+    populateToolbox(activeElement)
+    saveState()
+  }
+}
+
+/**
+ * Saves the current state to localStorage
+ */
+function saveState () {
+  try {
+    localStorage.setItem('ojs-theme-editor-rules', JSON.stringify(cssRules))
+    localStorage.setItem('ojs-theme-editor-original', JSON.stringify(originalValues))
+  } catch (e) {
+    console.warn('Could not save state:', e)
+  }
+}
+
+/**
+ * Loads the saved state from localStorage
+ */
+function loadState () {
+  try {
+    const savedRules = localStorage.getItem('ojs-theme-editor-rules')
+    const savedOriginal = localStorage.getItem('ojs-theme-editor-original')
+
+    if (savedRules) {
+      cssRules = JSON.parse(savedRules)
+      applyAllRules()
+    }
+
+    if (savedOriginal) {
+      originalValues = JSON.parse(savedOriginal)
+    }
+  } catch (e) {
+    console.warn('Could not load state:', e)
+  }
+}
+
+/**
+ * Makes an element draggable
+ * @param {HTMLElement} element The element to make draggable
+ * @param {string} handle Optional selector for drag handle
+ */
+function makeDraggable (element, handle = null) {
+  const dragHandle = handle ? element.querySelector(handle) : element
+  if (!dragHandle) return
+
+  let isDragging = false
+  let startX, startY, startLeft, startTop
+
+  dragHandle.addEventListener('mousedown', (e) => {
+    isDragging = true
+    element.dataset.wasDragged = 'false'
+
+    startX = e.clientX
+    startY = e.clientY
+    const rect = element.getBoundingClientRect()
+    startLeft = rect.left
+    startTop = rect.top
+
+    dragHandle.style.cursor = 'grabbing'
+    e.preventDefault()
+  })
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return
+
+    const deltaX = e.clientX - startX
+    const deltaY = e.clientY - startY
+
+    // Mark as dragged if moved more than 5 pixels
+    if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+      element.dataset.wasDragged = 'true'
+    }
+
+    element.style.left = (startLeft + deltaX) + 'px'
+    element.style.top = (startTop + deltaY) + 'px'
+    element.style.position = 'fixed'
+  })
+
+  document.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false
+      dragHandle.style.cursor = 'grab'
+    }
+  })
+}
+
+/**
+ * Populates background input with gradient support
+ * @param {string} backgroundColor Current background color value
+ */
+function populateBackgroundInput (backgroundColor) {
+  populateColorInput('background-color', backgroundColor)
+
+  // Add gradient toggle if not exists
+  const bgGroup = document.querySelector('[for="ote-bg-color"]')?.closest('.ote-control-group')
+  if (bgGroup && !document.getElementById('ote-bg-gradient-toggle')) {
+    const gradientToggle = document.createElement('div')
+    gradientToggle.innerHTML = `
+      <label>
+        <input type="checkbox" id="ote-bg-gradient-toggle"> Enable Gradient
+      </label>
+      <div id="ote-gradient-controls" style="display: none; margin-top: 8px;">
+        <div class="ote-control-row">
+          <label>Color 2:</label>
+          <input type="color" id="ote-bg-color2-picker" value="#ffffff">
+          <input type="text" id="ote-bg-color2-text" placeholder="#ffffff">
+        </div>
+        <div class="ote-control-row">
+          <label>Direction:</label>
+          <input type="range" id="ote-gradient-direction" min="0" max="360" step="1" value="0" class="ote-slider">
+          <span id="ote-gradient-direction-text">0°</span>
+        </div>
+        <div class="ote-control-row">
+          <label>Position:</label>
+          <input type="range" id="ote-gradient-position" min="0" max="100" step="1" value="50" class="ote-slider">
+          <span id="ote-gradient-position-text">50%</span>
+        </div>
+      </div>
+    `
+    bgGroup.appendChild(gradientToggle)
+    setupGradientEventListeners()
+  }
+}
+
+/**
+ * Populates shadow controls
+ * @param {string} boxShadow Current box-shadow value
+ */
+function populateShadowControls (boxShadow) {
+  // Create shadow controls if not exists
+  if (!document.getElementById('ote-shadow-group')) {
+    const shadowGroup = document.createElement('div')
+    shadowGroup.id = 'ote-shadow-group'
+    shadowGroup.className = 'ote-control-group'
+    shadowGroup.innerHTML = `
+      <label for="ote-shadow">
+        Box Shadow
+        <button class="ote-expand-btn" id="ote-shadow-expand" title="Expand shadow controls">🌑</button>
+      </label>
+      <div class="ote-control-row">
+        <label>
+          <input type="checkbox" id="ote-shadow-enabled"> Enable Shadow
+        </label>
+      </div>
+      <div id="ote-shadow-controls" style="display: none;">
+        <div class="ote-control-row">
+          <label>X Offset:</label>
+          <input type="range" id="ote-shadow-x-slider" min="-50" max="50" step="1" value="2" class="ote-slider">
+          <input type="text" id="ote-shadow-x-text" placeholder="2px" style="width: 60px;">
+          <span class="ote-unit">px</span>
+        </div>
+        <div class="ote-control-row">
+          <label>Y Offset:</label>
+          <input type="range" id="ote-shadow-y-slider" min="-50" max="50" step="1" value="2" class="ote-slider">
+          <input type="text" id="ote-shadow-y-text" placeholder="2px" style="width: 60px;">
+          <span class="ote-unit">px</span>
+        </div>
+        <div class="ote-control-row">
+          <label>Blur:</label>
+          <input type="range" id="ote-shadow-blur-slider" min="0" max="50" step="1" value="4" class="ote-slider">
+          <input type="text" id="ote-shadow-blur-text" placeholder="4px" style="width: 60px;">
+          <span class="ote-unit">px</span>
+        </div>
+        <div class="ote-control-row">
+          <label>Color:</label>
+          <input type="color" id="ote-shadow-color-picker" value="#000000">
+          <input type="text" id="ote-shadow-color-text" placeholder="#000000">
+        </div>
+      </div>
+    `
+
+    // Insert after border group
+    const borderGroup = document.querySelector('[for="ote-border"]')?.closest('.ote-control-group')
+    if (borderGroup) {
+      borderGroup.parentNode.insertBefore(shadowGroup, borderGroup.nextSibling)
+    }
+
+    setupShadowEventListeners()
+  }
+
+  // Parse and populate existing shadow values
+  if (boxShadow && boxShadow !== 'none') {
+    const shadowEnabled = document.getElementById('ote-shadow-enabled')
+    if (shadowEnabled) shadowEnabled.checked = true
+
+    // Parse shadow values (simplified)
+    const shadowMatch = boxShadow.match(/([-\d.]+)px\s+([-\d.]+)px\s+([\d.]+)px\s+(.+)/)
+    if (shadowMatch) {
+      const [, x, y, blur, color] = shadowMatch
+      populateValueInput('shadow-x', x + 'px')
+      populateValueInput('shadow-y', y + 'px')
+      populateValueInput('shadow-blur', blur + 'px')
+      populateColorInput('shadow-color', color)
+    }
+  } else {
+    // Set default shadow for visibility
+    const shadowEnabled = document.getElementById('ote-shadow-enabled')
+    if (shadowEnabled) shadowEnabled.checked = false
+  }
+}
+
+/**
+ * Populates dimension controls for images
+ * @param {string} width Current width value
+ * @param {string} height Current height value
+ */
+function populateDimensionControls (width, height) {
+  // Width controls
+  const widthText = document.getElementById('ote-width-text')
+  const widthSlider = document.getElementById('ote-width-slider')
+  const widthUnit = document.getElementById('ote-width-unit')
+
+  if (widthText) {
+    const numericValue = extractNumericValue(width)
+    const unit = width.replace(/[\d.]/g, '') || 'px'
+
+    widthText.value = numericValue || '100'
+
+    if (widthUnit) {
+      widthUnit.value = unit
+    }
+
+    if (widthSlider && numericValue > 0) {
+      widthSlider.value = Math.min(numericValue, 500)
+    }
+  }
+
+  // Height is handled by populateHeightInput
+  populateHeightInput(height)
+}
+
+/**
+ * Sets up event listeners for gradient controls
+ */
+function setupGradientEventListeners () {
+  const gradientToggle = document.getElementById('ote-bg-gradient-toggle')
+  const gradientControls = document.getElementById('ote-gradient-controls')
+  const color2Picker = document.getElementById('ote-bg-color2-picker')
+  const color2Text = document.getElementById('ote-bg-color2-text')
+  const directionSlider = document.getElementById('ote-gradient-direction')
+  const directionText = document.getElementById('ote-gradient-direction-text')
+  const positionSlider = document.getElementById('ote-gradient-position')
+  const positionText = document.getElementById('ote-gradient-position-text')
+
+  if (gradientToggle) {
+    gradientToggle.addEventListener('change', (e) => {
+      if (gradientControls) {
+        gradientControls.style.display = e.target.checked ? 'block' : 'none'
+      }
+      updateGradient()
+    })
+  }
+
+  if (color2Picker) {
+    color2Picker.addEventListener('input', (e) => {
+      if (color2Text) color2Text.value = e.target.value
+      updateGradient()
+    })
+  }
+
+  if (color2Text) {
+    color2Text.addEventListener('input', updateGradient)
+  }
+
+  if (directionSlider) {
+    directionSlider.addEventListener('input', (e) => {
+      if (directionText) directionText.textContent = e.target.value + '°'
+      updateGradient()
+    })
+  }
+
+  if (positionSlider) {
+    positionSlider.addEventListener('input', (e) => {
+      if (positionText) positionText.textContent = e.target.value + '%'
+      updateGradient()
+    })
+  }
+}
+
+/**
+ * Updates gradient background
+ */
+function updateGradient () {
+  const gradientToggle = document.getElementById('ote-bg-gradient-toggle')
+
+  if (!gradientToggle?.checked) {
+    // Gradient is disabled, apply solid background color
+    const color1 = document.getElementById('ote-bg-color-picker')?.value || '#ffffff'
+    applyStyle('background', 'none') // Clear any gradient
+    applyStyle('background-color', color1)
+    return
+  }
+
+  // Gradient is enabled, apply gradient
+  const color1 = document.getElementById('ote-bg-color-picker')?.value || '#ffffff'
+  const color2 = document.getElementById('ote-bg-color2-picker')?.value || '#000000'
+  const direction = document.getElementById('ote-gradient-direction')?.value || 0
+  const position = document.getElementById('ote-gradient-position')?.value || 50
+
+  const gradientValue = `linear-gradient(${direction}deg, ${color1} 0%, ${color2} ${position}%, ${color1} 100%)`
+  applyStyle('background-color', 'transparent') // Clear solid color
+  applyStyle('background', gradientValue)
+}
+
+/**
+ * Sets up event listeners for shadow controls
+ */
+function setupShadowEventListeners () {
+  const shadowEnabled = document.getElementById('ote-shadow-enabled')
+  const shadowControls = document.getElementById('ote-shadow-controls')
+  const shadowExpand = document.getElementById('ote-shadow-expand')
+
+  if (shadowEnabled) {
+    shadowEnabled.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        updateShadow()
+        if (shadowControls) shadowControls.style.display = 'block'
+      } else {
+        applyStyle('box-shadow', 'none')
+        if (shadowControls) shadowControls.style.display = 'none'
+      }
+    })
+  }
+
+  if (shadowExpand) {
+    shadowExpand.addEventListener('click', () => {
+      if (shadowControls) {
+        const isVisible = shadowControls.style.display !== 'none'
+        shadowControls.style.display = isVisible ? 'none' : 'block'
+        shadowExpand.textContent = isVisible ? '🌑' : '🌕'
+      }
+    })
+  }
+
+  // Shadow property controls
+  const shadowProps = ['x', 'y', 'blur']
+  shadowProps.forEach(prop => {
+    const slider = document.getElementById(`ote-shadow-${prop}-slider`)
+    const text = document.getElementById(`ote-shadow-${prop}-text`)
+
+    if (slider) {
+      slider.addEventListener('input', (e) => {
+        const value = e.target.value + 'px'
+        if (text) text.value = value
+        updateShadow()
+      })
+    }
+
+    if (text) {
+      text.addEventListener('input', (e) => {
+        if (slider) slider.value = extractNumericValue(e.target.value)
+        updateShadow()
+      })
+    }
+  })
+
+  // Shadow color
+  const shadowColorPicker = document.getElementById('ote-shadow-color-picker')
+  const shadowColorText = document.getElementById('ote-shadow-color-text')
+
+  if (shadowColorPicker) {
+    shadowColorPicker.addEventListener('input', (e) => {
+      if (shadowColorText) shadowColorText.value = e.target.value
+      updateShadow()
+    })
+  }
+
+  if (shadowColorText) {
+    shadowColorText.addEventListener('input', updateShadow)
+  }
+}
+
+/**
+ * Updates box shadow
+ */
+function updateShadow () {
+  const shadowEnabled = document.getElementById('ote-shadow-enabled')
+  if (!shadowEnabled?.checked) return
+
+  const x = document.getElementById('ote-shadow-x-text')?.value || '2px'
+  const y = document.getElementById('ote-shadow-y-text')?.value || '2px'
+  const blur = document.getElementById('ote-shadow-blur-text')?.value || '4px'
+  const color = document.getElementById('ote-shadow-color-text')?.value || '#000000'
+
+  const shadowValue = `${x} ${y} ${blur} ${color}`
+  applyStyle('box-shadow', shadowValue)
+}
+
+/**
+ * Toggles the expanded padding controls
+ */
+function togglePaddingExpand () {
+  const expandedControls = document.getElementById('ote-padding-expanded')
+  const expandBtn = document.getElementById('ote-padding-expand')
+
+  if (expandedControls && expandBtn) {
+    const isExpanded = expandedControls.style.display !== 'none'
+    expandedControls.style.display = isExpanded ? 'none' : 'block'
+    expandBtn.textContent = isExpanded ? '⚙️' : '📐'
+    expandBtn.title = isExpanded ? 'Expand padding controls' : 'Collapse padding controls'
+
+    // Setup event listeners when first expanded
+    if (!isExpanded) {
+      setupPaddingEventListeners()
+    }
+  }
+}
+
+/**
+ * Toggles the expanded margin controls
+ */
+function toggleMarginExpand () {
+  const expandedControls = document.getElementById('ote-margin-expanded')
+  const expandBtn = document.getElementById('ote-margin-expand')
+
+  if (expandedControls && expandBtn) {
+    const isExpanded = expandedControls.style.display !== 'none'
+    expandedControls.style.display = isExpanded ? 'none' : 'block'
+    expandBtn.textContent = isExpanded ? '⚙️' : '📐'
+    expandBtn.title = isExpanded ? 'Expand margin controls' : 'Collapse margin controls'
+
+    // Setup event listeners when first expanded
+    if (!isExpanded) {
+      setupMarginEventListeners()
+    }
+  }
+}
+
+/**
+ * Selects element from hierarchy
+ * @param {number} index Index in the hierarchy array
+ */
+function selectElementFromHierarchy (index) {
+  if (!elementHierarchy[index]) return
+
+  const hierarchyItem = elementHierarchy[index]
+  const newElement = hierarchyItem.element
+
+  // Remove highlight from current element
+  if (activeElement) {
+    activeElement.classList.remove(HIGHLIGHT_CLASS)
+  }
+
+  // Set new active element
+  activeElement = newElement
+  activeElement.classList.add(HIGHLIGHT_CLASS)
+
+  // Store original values
+  storeOriginalValues(activeElement)
+
+  // Update selector display
+  const selectorElement = document.getElementById('ote-current-selector')
+  if (selectorElement) {
+    selectorElement.textContent = hierarchyItem.selector
+  }
+
+
+  // Repopulate toolbox
+  populateToolbox(activeElement)
+
+  debugLog('🎯 Selected element from hierarchy:', hierarchyItem.displayName)
+}
+
 
 /**
  * Populates border control fields
@@ -1152,30 +2064,75 @@ function populateIndividualBorderControls (computedStyle) {
   })
 }
 
+
 /**
- * Exports the collected CSS rules as a .css file.
+ * Resets element to its original values
+ * @param {HTMLElement} element The element to reset
  */
-function exportCss () {
-  let cssString = '/* --- Custom OJS Theme Styles --- */\n\n'
-  for (const selector in cssRules) {
-    cssString += `${selector} {\n`
-    for (const property in cssRules[selector]) {
-      const value = cssRules[selector][property]
-      cssString += `    ${property}: ${value} !important;\n`
-    }
-    cssString += '}\n\n'
+function resetToOriginal (element) {
+  if (!element) return
+
+  const selector = generateSelector(element)
+  const original = originalValues[selector]
+
+  if (!original) {
+    console.warn('⚠️ No original values found for element')
+    return
   }
 
-  const blob = new Blob([cssString], { type: 'text/css' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'custom-ojs-theme.css'
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+  // Remove all custom styles for this selector
+  if (cssRules[selector]) {
+    delete cssRules[selector]
+  }
+
+  // Clear current history
+  currentHistory[selector] = {}
+
+  // Reapply all rules (which now excludes this element)
+  applyAllRules()
+
+  // Repopulate toolbox with original values
+  populateToolbox(element)
+
+  saveState()
+  console.log('🔄 Reset element to original values:', selector)
 }
+
+/**
+ * Undoes the last change for current element
+ */
+function undoLastChange () {
+  if (!activeElement) return
+
+  const selector = generateSelector(activeElement)
+  const history = currentHistory[selector]
+
+  if (!history || Object.keys(history).length === 0) {
+    console.warn('⚠️ No changes to undo')
+    return
+  }
+
+  // Get the last changed property
+  const lastProperty = Object.keys(history).pop()
+  if (lastProperty) {
+    delete history[lastProperty]
+    if (cssRules[selector]) {
+      delete cssRules[selector][lastProperty]
+
+      // If no more properties, remove the selector entirely
+      if (Object.keys(cssRules[selector]).length === 0) {
+        delete cssRules[selector]
+      }
+    }
+  }
+
+  applyAllRules()
+  populateToolbox(activeElement)
+  saveState()
+
+  console.log('↶ Undid last change for:', selector, lastProperty)
+}
+
 
 /**
  * Creates and shows the options panel
@@ -1432,115 +2389,6 @@ function showOptionsPanel () {
   console.log('✅ Options panel setup complete!')
 }
 
-/**
- * Sets up event listeners for the options panel
- */
-function setupOptionsEventListeners () {
-  console.log('🔧 Setting up options event listeners...')
-
-  const panel = document.getElementById('ojs-theme-options-panel')
-  if (!panel) {
-    console.error('❌ Options panel not found!')
-    return
-  }
-
-  // Close button
-  const closeBtn = document.getElementById('ote-options-close-btn')
-  if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      console.log('🔴 Closing options panel')
-      panel.remove()
-    })
-    console.log('✅ Close button listener added')
-  } else {
-    console.error('❌ Close button not found!')
-  }
-
-  // Click outside to close
-  document.addEventListener('click', function closeOnOutsideClick (e) {
-    if (!panel.contains(e.target)) {
-      console.log('🔴 Closing panel - clicked outside')
-      panel.remove()
-      document.removeEventListener('click', closeOnOutsideClick)
-    }
-  }, true)
-
-  // Start editing button
-  const startEditingBtn = document.getElementById('ote-start-editing-btn')
-  if (startEditingBtn) {
-    startEditingBtn.addEventListener('click', () => {
-      console.log('✏️ Start editing clicked')
-
-      // Initialize full extension if not already done
-      if (!document.getElementById('ojs-theme-editor-toolbox')) {
-        initializeFullExtension()
-      }
-
-      panel.remove()
-      showInstructions()
-    })
-    console.log('✅ Start editing button listener added')
-  } else {
-    console.error('❌ Start editing button not found!')
-  }
-
-  // Export all button
-  const exportAllBtn = document.getElementById('ote-export-all-btn')
-  if (exportAllBtn) {
-    exportAllBtn.addEventListener('click', () => {
-      console.log('📤 Export all clicked')
-      exportCss()
-      panel.remove()
-    })
-    console.log('✅ Export all button listener added')
-  } else {
-    console.error('❌ Export all button not found!')
-  }
-
-  // Clear current page button
-  const clearCurrentBtn = document.getElementById('ote-clear-current-btn')
-  if (clearCurrentBtn) {
-    clearCurrentBtn.addEventListener('click', () => {
-      console.log('🗑️ Clear current page clicked')
-      if (confirm('Clear all styles for the current page? This cannot be undone.')) {
-        clearCurrentPageStyles()
-        updateOptionsStats()
-      }
-    })
-    console.log('✅ Clear current button listener added')
-  } else {
-    console.error('❌ Clear current button not found!')
-  }
-
-  // Clear all button
-  const clearAllBtn = document.getElementById('ote-clear-all-btn')
-  if (clearAllBtn) {
-    clearAllBtn.addEventListener('click', () => {
-      console.log('🗑️ Clear all clicked')
-      if (confirm('Clear ALL saved styles? This cannot be undone.')) {
-        clearAllStyles()
-        updateOptionsStats()
-      }
-    })
-    console.log('✅ Clear all button listener added')
-  } else {
-    console.error('❌ Clear all button not found!')
-  }
-
-  // About button
-  const aboutBtn = document.getElementById('ote-about-btn')
-  if (aboutBtn) {
-    aboutBtn.addEventListener('click', () => {
-      console.log('ℹ️ About clicked')
-      showAboutDialog()
-    })
-    console.log('✅ About button listener added')
-  } else {
-    console.error('❌ About button not found!')
-  }
-
-  console.log('✅ All options event listeners set up!')
-}
 
 /**
  * Updates statistics in the options panel
@@ -1768,860 +2616,113 @@ function showAboutDialog () {
   document.body.appendChild(aboutDialog)
 }
 
-// == HELPER FUNCTIONS ==
 
 /**
- * Stores original values of an element for undo functionality
- * @param {HTMLElement} element The element to store values for
+ * Sets up event listeners for the options panel
  */
-function storeOriginalValues (element) {
-  if (!element) return
+function setupOptionsEventListeners () {
+  console.log('🔧 Setting up options event listeners...')
 
-  const selector = generateSelector(element)
-  const computedStyle = getComputedStyle(element)
-
-  originalValues[selector] = {
-    color: computedStyle.getPropertyValue('color'),
-    backgroundColor: computedStyle.getPropertyValue('background-color'),
-    fontSize: computedStyle.getPropertyValue('font-size'),
-    padding: computedStyle.getPropertyValue('padding'),
-    margin: computedStyle.getPropertyValue('margin'),
-    border: computedStyle.getPropertyValue('border'),
-    borderRadius: computedStyle.getPropertyValue('border-radius'),
-    boxShadow: computedStyle.getPropertyValue('box-shadow'),
-    width: computedStyle.getPropertyValue('width'),
-    height: computedStyle.getPropertyValue('height')
-  }
-
-  // Clear current history when selecting new element
-  currentHistory[selector] = {}
-
-  console.log('📝 Stored original values for:', selector, originalValues[selector])
-}
-
-/**
- * Resets element to its original values
- * @param {HTMLElement} element The element to reset
- */
-function resetToOriginal (element) {
-  if (!element) return
-
-  const selector = generateSelector(element)
-  const original = originalValues[selector]
-
-  if (!original) {
-    console.warn('⚠️ No original values found for element')
+  const panel = document.getElementById('ojs-theme-options-panel')
+  if (!panel) {
+    console.error('❌ Options panel not found!')
     return
   }
 
-  // Remove all custom styles for this selector
-  if (cssRules[selector]) {
-    delete cssRules[selector]
-  }
-
-  // Clear current history
-  currentHistory[selector] = {}
-
-  // Reapply all rules (which now excludes this element)
-  applyAllRules()
-
-  // Repopulate toolbox with original values
-  populateToolbox(element)
-
-  saveState()
-  console.log('🔄 Reset element to original values:', selector)
-}
-
-/**
- * Undoes the last change for current element
- */
-function undoLastChange () {
-  if (!activeElement) return
-
-  const selector = generateSelector(activeElement)
-  const history = currentHistory[selector]
-
-  if (!history || Object.keys(history).length === 0) {
-    console.warn('⚠️ No changes to undo')
-    return
-  }
-
-  // Get the last changed property
-  const lastProperty = Object.keys(history).pop()
-  if (lastProperty) {
-    delete history[lastProperty]
-    if (cssRules[selector]) {
-      delete cssRules[selector][lastProperty]
-
-      // If no more properties, remove the selector entirely
-      if (Object.keys(cssRules[selector]).length === 0) {
-        delete cssRules[selector]
-      }
-    }
-  }
-
-  applyAllRules()
-  populateToolbox(activeElement)
-  saveState()
-
-  console.log('↶ Undid last change for:', selector, lastProperty)
-}
-
-/**
- * Detects if element is an image
- * @param {HTMLElement} element The element to check
- * @returns {boolean} True if element is an image
- */
-function isImageElement (element) {
-  return element.tagName.toLowerCase() === 'img' ||
-    (element.tagName.toLowerCase() === 'div' &&
-      getComputedStyle(element).backgroundImage !== 'none')
-}
-
-/**
- * Extracts numeric value from a CSS value string
- * @param {string} value The CSS value
- * @returns {number} The numeric value
- */
-function extractNumericValue (value) {
-  if (!value) return 0
-  const match = value.toString().match(/(\d+\.?\d*)/)
-  return match ? parseFloat(match[1]) : 0
-}
-
-/**
- * Converts RGB to Hex
- * @param {string} rgb RGB color string
- * @returns {string} Hex color string
- */
-function rgbToHex (rgb) {
-  if (!rgb || !rgb.startsWith('rgb')) return rgb
-
-  const match = rgb.match(/\d+/g)
-  if (match && match.length >= 3) {
-    return '#' + match.slice(0, 3).map(x =>
-      parseInt(x).toString(16).padStart(2, '0')
-    ).join('')
-  }
-  return rgb
-}
-
-// == UI & STATE HELPERS ==
-
-function showToolbox () {
-  document.getElementById('ojs-theme-editor-toolbox').classList.add('visible')
-}
-
-function hideToolbox () {
-  if (activeElement) {
-    activeElement.classList.remove(HIGHLIGHT_CLASS)
-    activeElement = null
-  }
-  document.getElementById('ojs-theme-editor-toolbox').classList.remove('visible')
-}
-
-function saveState () {
-  chrome.storage.local.set({ ojsThemeEditorRules: cssRules })
-}
-
-function loadState () {
-  chrome.storage.local.get('ojsThemeEditorRules', (result) => {
-    if (result.ojsThemeEditorRules) {
-      cssRules = result.ojsThemeEditorRules
-      // Optionally, apply saved styles on load
-      applyAllRules()
-    }
-  })
-}
-
-function applyAllRules () {
-  let styleSheet = document.getElementById('ojs-dynamic-styles')
-  if (!styleSheet) {
-    styleSheet = document.createElement('style')
-    styleSheet.id = 'ojs-dynamic-styles'
-    document.head.appendChild(styleSheet)
-  }
-
-  let cssString = ''
-  for (const selector in cssRules) {
-    try {
-      if (document.querySelector(selector)) {
-        cssString += `${selector} {`
-        for (const property in cssRules[selector]) {
-          const value = cssRules[selector][property]
-          cssString += `${property}: ${value} !important;`
-        }
-        cssString += `}`
-      }
-    } catch (e) {
-      console.warn("Invalid selector in stored rules:", selector)
-    }
-  }
-  styleSheet.innerHTML = cssString
-}
-
-function makeDraggable (element, handle) {
-  let isDragging = false
-  let dragStarted = false
-  let startX = 0, startY = 0
-  let initialX = 0, initialY = 0
-  const dragHandle = handle ? element.querySelector(handle) : element
-
-  if (dragHandle) {
-    dragHandle.addEventListener('mousedown', dragMouseDown)
+  // Close button
+  const closeBtn = document.getElementById('ote-options-close-btn')
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      console.log('🔴 Closing options panel')
+      panel.remove()
+    })
+    console.log('✅ Close button listener added')
   } else {
-    element.addEventListener('mousedown', dragMouseDown)
+    console.error('❌ Close button not found!')
   }
 
-  function dragMouseDown (e) {
-    e.preventDefault()
-    e.stopPropagation()
-
-    isDragging = false
-    dragStarted = false
-
-    // Get initial positions
-    startX = e.clientX
-    startY = e.clientY
-    initialX = element.offsetLeft
-    initialY = element.offsetTop
-
-    document.addEventListener('mouseup', closeDragElement)
-    document.addEventListener('mousemove', elementDrag)
-
-    // Change cursor
-    if (element.id === 'ojs-theme-toggle-btn') {
-      element.style.cursor = 'grabbing'
+  // Click outside to close
+  document.addEventListener('click', function closeOnOutsideClick (e) {
+    if (!panel.contains(e.target)) {
+      console.log('🔴 Closing panel - clicked outside')
+      panel.remove()
+      document.removeEventListener('click', closeOnOutsideClick)
     }
-  }
+  }, true)
 
-  function elementDrag (e) {
-    e.preventDefault()
-    e.stopPropagation()
+  // Start editing button
+  const startEditingBtn = document.getElementById('ote-start-editing-btn')
+  if (startEditingBtn) {
+    startEditingBtn.addEventListener('click', () => {
+      console.log('✏️ Start editing clicked')
 
-    if (!dragStarted) {
-      dragStarted = true
-    }
-
-    isDragging = true
-
-    // Calculate new position based on mouse movement
-    const deltaX = e.clientX - startX
-    const deltaY = e.clientY - startY
-
-    const newLeft = initialX + deltaX
-    const newTop = initialY + deltaY
-
-    // Keep element within viewport bounds with some padding
-    const padding = 10
-    const maxTop = window.innerHeight - element.offsetHeight - padding
-    const maxLeft = window.innerWidth - element.offsetWidth - padding
-
-    const boundedLeft = Math.max(padding, Math.min(newLeft, maxLeft))
-    const boundedTop = Math.max(padding, Math.min(newTop, maxTop))
-
-    // Apply position immediately
-    element.style.left = boundedLeft + "px"
-    element.style.top = boundedTop + "px"
-
-    // Mark as dragged for toggle button
-    if (element.id === 'ojs-theme-toggle-btn') {
-      element.dataset.wasDragged = 'true'
-    }
-  }
-
-  function closeDragElement () {
-    document.removeEventListener('mouseup', closeDragElement)
-    document.removeEventListener('mousemove', elementDrag)
-
-    // Reset cursor
-    if (element.id === 'ojs-theme-toggle-btn') {
-      element.style.cursor = 'grab'
-
-      // If it wasn't dragged, don't mark as dragged
-      if (!isDragging || !dragStarted) {
-        element.dataset.wasDragged = 'false'
+      // Initialize full extension if not already done
+      if (!document.getElementById('ojs-theme-editor-toolbox')) {
+        initializeFullExtension()
       }
-    }
 
-    // Small delay before allowing clicks again
-    setTimeout(() => {
-      if (element.id === 'ojs-theme-toggle-btn' && !isDragging) {
-        element.dataset.wasDragged = 'false'
-      }
-    }, 50)
-  }
-}
-
-/**
- * Populates background input with gradient support
- * @param {string} backgroundColor Current background color value
- */
-function populateBackgroundInput (backgroundColor) {
-  populateColorInput('background-color', backgroundColor)
-
-  // Add gradient toggle if not exists
-  const bgGroup = document.querySelector('[for="ote-bg-color"]')?.closest('.ote-control-group')
-  if (bgGroup && !document.getElementById('ote-bg-gradient-toggle')) {
-    const gradientToggle = document.createElement('div')
-    gradientToggle.innerHTML = `
-      <label>
-        <input type="checkbox" id="ote-bg-gradient-toggle"> Enable Gradient
-      </label>
-      <div id="ote-gradient-controls" style="display: none; margin-top: 8px;">
-        <div class="ote-control-row">
-          <label>Color 2:</label>
-          <input type="color" id="ote-bg-color2-picker" value="#ffffff">
-          <input type="text" id="ote-bg-color2-text" placeholder="#ffffff">
-        </div>
-        <div class="ote-control-row">
-          <label>Direction:</label>
-          <input type="range" id="ote-gradient-direction" min="0" max="360" step="1" value="0" class="ote-slider">
-          <span id="ote-gradient-direction-text">0°</span>
-        </div>
-        <div class="ote-control-row">
-          <label>Position:</label>
-          <input type="range" id="ote-gradient-position" min="0" max="100" step="1" value="50" class="ote-slider">
-          <span id="ote-gradient-position-text">50%</span>
-        </div>
-      </div>
-    `
-    bgGroup.appendChild(gradientToggle)
-    setupGradientEventListeners()
-  }
-}
-
-/**
- * Populates shadow controls
- * @param {string} boxShadow Current box-shadow value
- */
-function populateShadowControls (boxShadow) {
-  // Create shadow controls if not exists
-  if (!document.getElementById('ote-shadow-group')) {
-    const shadowGroup = document.createElement('div')
-    shadowGroup.id = 'ote-shadow-group'
-    shadowGroup.className = 'ote-control-group'
-    shadowGroup.innerHTML = `
-      <label for="ote-shadow">
-        Box Shadow
-        <button class="ote-expand-btn" id="ote-shadow-expand" title="Expand shadow controls">🌑</button>
-      </label>
-      <div class="ote-control-row">
-        <label>
-          <input type="checkbox" id="ote-shadow-enabled"> Enable Shadow
-        </label>
-      </div>
-      <div id="ote-shadow-controls" style="display: none;">
-        <div class="ote-control-row">
-          <label>X Offset:</label>
-          <input type="range" id="ote-shadow-x-slider" min="-50" max="50" step="1" value="2" class="ote-slider">
-          <input type="text" id="ote-shadow-x-text" placeholder="2px" style="width: 60px;">
-          <span class="ote-unit">px</span>
-        </div>
-        <div class="ote-control-row">
-          <label>Y Offset:</label>
-          <input type="range" id="ote-shadow-y-slider" min="-50" max="50" step="1" value="2" class="ote-slider">
-          <input type="text" id="ote-shadow-y-text" placeholder="2px" style="width: 60px;">
-          <span class="ote-unit">px</span>
-        </div>
-        <div class="ote-control-row">
-          <label>Blur:</label>
-          <input type="range" id="ote-shadow-blur-slider" min="0" max="50" step="1" value="4" class="ote-slider">
-          <input type="text" id="ote-shadow-blur-text" placeholder="4px" style="width: 60px;">
-          <span class="ote-unit">px</span>
-        </div>
-        <div class="ote-control-row">
-          <label>Color:</label>
-          <input type="color" id="ote-shadow-color-picker" value="#000000">
-          <input type="text" id="ote-shadow-color-text" placeholder="#000000">
-        </div>
-      </div>
-    `
-
-    // Insert after border group
-    const borderGroup = document.querySelector('[for="ote-border"]')?.closest('.ote-control-group')
-    if (borderGroup) {
-      borderGroup.parentNode.insertBefore(shadowGroup, borderGroup.nextSibling)
-    }
-
-    setupShadowEventListeners()
-  }
-
-  // Parse and populate existing shadow values
-  if (boxShadow && boxShadow !== 'none') {
-    const shadowEnabled = document.getElementById('ote-shadow-enabled')
-    if (shadowEnabled) shadowEnabled.checked = true
-
-    // Parse shadow values (simplified)
-    const shadowMatch = boxShadow.match(/([-\d.]+)px\s+([-\d.]+)px\s+([\d.]+)px\s+(.+)/)
-    if (shadowMatch) {
-      const [, x, y, blur, color] = shadowMatch
-      populateValueInput('shadow-x', x + 'px')
-      populateValueInput('shadow-y', y + 'px')
-      populateValueInput('shadow-blur', blur + 'px')
-      populateColorInput('shadow-color', color)
-    }
+      panel.remove()
+      showInstructions()
+    })
+    console.log('✅ Start editing button listener added')
   } else {
-    // Set default shadow for visibility
-    const shadowEnabled = document.getElementById('ote-shadow-enabled')
-    if (shadowEnabled) shadowEnabled.checked = false
-  }
-}
-
-/**
- * Populates dimension controls for images
- * @param {string} width Current width value
- * @param {string} height Current height value
- */
-function populateDimensionControls (width, height) {
-  // Create dimension controls if not exists
-  if (!document.getElementById('ote-dimension-group')) {
-    const dimensionGroup = document.createElement('div')
-    dimensionGroup.id = 'ote-dimension-group'
-    dimensionGroup.className = 'ote-control-group'
-    dimensionGroup.innerHTML = `
-      <label for="ote-dimensions">Dimensions</label>
-      <div class="ote-control-row">
-        <label>Width:</label>
-        <input type="range" id="ote-width-slider" min="50" max="1000" step="10" class="ote-slider">
-        <input type="text" id="ote-width-text" placeholder="auto" style="width: 80px;">
-        <span class="ote-unit">px</span>
-      </div>
-      <div class="ote-control-row">
-        <label>Height:</label>
-        <input type="range" id="ote-height-slider" min="50" max="1000" step="10" class="ote-slider">
-        <input type="text" id="ote-height-text" placeholder="auto" style="width: 80px;">
-        <span class="ote-unit">px</span>
-      </div>
-      <div class="ote-control-row">
-        <label>
-          <input type="checkbox" id="ote-maintain-aspect-ratio" checked> Maintain Aspect Ratio
-        </label>
-      </div>
-    `
-
-    // Insert after font size group
-    const fontGroup = document.querySelector('[for="ote-font-size"]')?.closest('.ote-control-group')
-    if (fontGroup) {
-      fontGroup.parentNode.insertBefore(dimensionGroup, fontGroup.nextSibling)
-    }
-
-    setupDimensionEventListeners()
+    console.error('❌ Start editing button not found!')
   }
 
-  // Populate current values
-  populateValueInput('width', width)
-  populateValueInput('height', height)
-}
-
-/**
- * Sets up event listeners for gradient controls
- */
-function setupGradientEventListeners () {
-  const gradientToggle = document.getElementById('ote-bg-gradient-toggle')
-  const gradientControls = document.getElementById('ote-gradient-controls')
-  const color2Picker = document.getElementById('ote-bg-color2-picker')
-  const color2Text = document.getElementById('ote-bg-color2-text')
-  const directionSlider = document.getElementById('ote-gradient-direction')
-  const directionText = document.getElementById('ote-gradient-direction-text')
-  const positionSlider = document.getElementById('ote-gradient-position')
-  const positionText = document.getElementById('ote-gradient-position-text')
-
-  if (gradientToggle) {
-    gradientToggle.addEventListener('change', (e) => {
-      if (gradientControls) {
-        gradientControls.style.display = e.target.checked ? 'block' : 'none'
-      }
-      updateGradient()
+  // Export all button
+  const exportAllBtn = document.getElementById('ote-export-all-btn')
+  if (exportAllBtn) {
+    exportAllBtn.addEventListener('click', () => {
+      console.log('📤 Export all clicked')
+      exportCss()
+      panel.remove()
     })
-  }
-
-  if (color2Picker) {
-    color2Picker.addEventListener('input', (e) => {
-      if (color2Text) color2Text.value = e.target.value
-      updateGradient()
-    })
-  }
-
-  if (color2Text) {
-    color2Text.addEventListener('input', updateGradient)
-  }
-
-  if (directionSlider) {
-    directionSlider.addEventListener('input', (e) => {
-      if (directionText) directionText.textContent = e.target.value + '°'
-      updateGradient()
-    })
-  }
-
-  if (positionSlider) {
-    positionSlider.addEventListener('input', (e) => {
-      if (positionText) positionText.textContent = e.target.value + '%'
-      updateGradient()
-    })
-  }
-}
-
-/**
- * Updates gradient background
- */
-function updateGradient () {
-  const gradientToggle = document.getElementById('ote-bg-gradient-toggle')
-
-  if (!gradientToggle?.checked) {
-    // Gradient is disabled, apply solid background color
-    const color1 = document.getElementById('ote-bg-color-picker')?.value || '#ffffff'
-    applyStyle('background', 'none') // Clear any gradient
-    applyStyle('background-color', color1)
-    return
-  }
-
-  // Gradient is enabled, apply gradient
-  const color1 = document.getElementById('ote-bg-color-picker')?.value || '#ffffff'
-  const color2 = document.getElementById('ote-bg-color2-picker')?.value || '#000000'
-  const direction = document.getElementById('ote-gradient-direction')?.value || 0
-  const position = document.getElementById('ote-gradient-position')?.value || 50
-
-  const gradientValue = `linear-gradient(${direction}deg, ${color1} 0%, ${color2} ${position}%, ${color1} 100%)`
-  applyStyle('background-color', 'transparent') // Clear solid color
-  applyStyle('background', gradientValue)
-}
-
-/**
- * Sets up event listeners for shadow controls
- */
-function setupShadowEventListeners () {
-  const shadowEnabled = document.getElementById('ote-shadow-enabled')
-  const shadowControls = document.getElementById('ote-shadow-controls')
-  const shadowExpand = document.getElementById('ote-shadow-expand')
-
-  if (shadowEnabled) {
-    shadowEnabled.addEventListener('change', (e) => {
-      if (e.target.checked) {
-        updateShadow()
-        if (shadowControls) shadowControls.style.display = 'block'
-      } else {
-        applyStyle('box-shadow', 'none')
-        if (shadowControls) shadowControls.style.display = 'none'
-      }
-    })
-  }
-
-  if (shadowExpand) {
-    shadowExpand.addEventListener('click', () => {
-      if (shadowControls) {
-        const isVisible = shadowControls.style.display !== 'none'
-        shadowControls.style.display = isVisible ? 'none' : 'block'
-        shadowExpand.textContent = isVisible ? '🌑' : '🌕'
-      }
-    })
-  }
-
-  // Shadow property controls
-  const shadowProps = ['x', 'y', 'blur']
-  shadowProps.forEach(prop => {
-    const slider = document.getElementById(`ote-shadow-${prop}-slider`)
-    const text = document.getElementById(`ote-shadow-${prop}-text`)
-
-    if (slider) {
-      slider.addEventListener('input', (e) => {
-        const value = e.target.value + 'px'
-        if (text) text.value = value
-        updateShadow()
-      })
-    }
-
-    if (text) {
-      text.addEventListener('input', (e) => {
-        if (slider) slider.value = extractNumericValue(e.target.value)
-        updateShadow()
-      })
-    }
-  })
-
-  // Shadow color
-  const shadowColorPicker = document.getElementById('ote-shadow-color-picker')
-  const shadowColorText = document.getElementById('ote-shadow-color-text')
-
-  if (shadowColorPicker) {
-    shadowColorPicker.addEventListener('input', (e) => {
-      if (shadowColorText) shadowColorText.value = e.target.value
-      updateShadow()
-    })
-  }
-
-  if (shadowColorText) {
-    shadowColorText.addEventListener('input', updateShadow)
-  }
-}
-
-/**
- * Updates box shadow
- */
-function updateShadow () {
-  const shadowEnabled = document.getElementById('ote-shadow-enabled')
-  if (!shadowEnabled?.checked) return
-
-  const x = document.getElementById('ote-shadow-x-text')?.value || '2px'
-  const y = document.getElementById('ote-shadow-y-text')?.value || '2px'
-  const blur = document.getElementById('ote-shadow-blur-text')?.value || '4px'
-  const color = document.getElementById('ote-shadow-color-text')?.value || '#000000'
-
-  const shadowValue = `${x} ${y} ${blur} ${color}`
-  applyStyle('box-shadow', shadowValue)
-}
-
-/**
- * Sets up event listeners for height controls
- */
-function setupHeightEventListeners () {
-  const heightSlider = document.getElementById('ote-height-slider')
-  const heightText = document.getElementById('ote-height-text')
-  const heightUnit = document.getElementById('ote-height-unit')
-
-  const updateHeight = () => {
-    const value = heightText?.value || '0'
-    const unit = heightUnit?.value || 'px'
-
-    if (value === 'auto' || unit === 'auto') {
-      applyStyle('height', 'auto')
-    } else {
-      const heightValue = unit === 'px' ? value + unit : value + unit
-      applyStyle('height', heightValue)
-    }
-  }
-
-  if (heightSlider) {
-    heightSlider.addEventListener('input', (e) => {
-      const unit = heightUnit?.value || 'px'
-      if (unit !== 'auto') {
-        const value = e.target.value + unit
-        if (heightText) heightText.value = e.target.value
-        applyStyle('height', value)
-      }
-    })
-  }
-
-  if (heightText) {
-    heightText.addEventListener('input', (e) => {
-      const value = e.target.value
-      if (value === 'auto') {
-        applyStyle('height', 'auto')
-        if (heightUnit) heightUnit.value = 'auto'
-      } else {
-        if (heightSlider && !isNaN(value)) {
-          heightSlider.value = extractNumericValue(value)
-        }
-        updateHeight()
-      }
-    })
-  }
-
-  if (heightUnit) {
-    heightUnit.addEventListener('change', updateHeight)
-  }
-}
-
-/**
- * Sets up event listeners for individual padding sides
- */
-function setupPaddingEventListeners () {
-  const sides = ['top', 'right', 'bottom', 'left']
-
-  sides.forEach(side => {
-    const slider = document.getElementById(`ote-padding-${side}-slider`)
-    const text = document.getElementById(`ote-padding-${side}-text`)
-
-    if (slider) {
-      slider.addEventListener('input', (e) => {
-        const value = e.target.value + 'px'
-        applyStyle(`padding-${side}`, value)
-        if (text) text.value = e.target.value
-      })
-    }
-
-    if (text) {
-      text.addEventListener('input', (e) => {
-        applyStyle(`padding-${side}`, e.target.value)
-        if (slider) slider.value = extractNumericValue(e.target.value)
-      })
-    }
-  })
-}
-
-/**
- * Sets up event listeners for individual margin sides
- */
-function setupMarginEventListeners () {
-  const sides = ['top', 'right', 'bottom', 'left']
-
-  sides.forEach(side => {
-    const slider = document.getElementById(`ote-margin-${side}-slider`)
-    const text = document.getElementById(`ote-margin-${side}-text`)
-
-    if (slider) {
-      slider.addEventListener('input', (e) => {
-        const value = e.target.value + 'px'
-        applyStyle(`margin-${side}`, value)
-        if (text) text.value = e.target.value
-      })
-    }
-
-    if (text) {
-      text.addEventListener('input', (e) => {
-        applyStyle(`margin-${side}`, e.target.value)
-        if (slider) slider.value = extractNumericValue(e.target.value)
-      })
-    }
-  })
-}
-
-/**
- * Toggles the expanded padding controls
- */
-function togglePaddingExpand () {
-  const expandedControls = document.getElementById('ote-padding-expanded')
-  const expandBtn = document.getElementById('ote-padding-expand')
-
-  if (expandedControls && expandBtn) {
-    const isExpanded = expandedControls.style.display !== 'none'
-    expandedControls.style.display = isExpanded ? 'none' : 'block'
-    expandBtn.textContent = isExpanded ? '⚙️' : '📐'
-    expandBtn.title = isExpanded ? 'Expand padding controls' : 'Collapse padding controls'
-
-    // Setup event listeners when first expanded
-    if (!isExpanded) {
-      setupPaddingEventListeners()
-    }
-  }
-}
-
-/**
- * Toggles the expanded margin controls
- */
-function toggleMarginExpand () {
-  const expandedControls = document.getElementById('ote-margin-expanded')
-  const expandBtn = document.getElementById('ote-margin-expand')
-
-  if (expandedControls && expandBtn) {
-    const isExpanded = expandedControls.style.display !== 'none'
-    expandedControls.style.display = isExpanded ? 'none' : 'block'
-    expandBtn.textContent = isExpanded ? '⚙️' : '📐'
-    expandBtn.title = isExpanded ? 'Expand margin controls' : 'Collapse margin controls'
-
-    // Setup event listeners when first expanded
-    if (!isExpanded) {
-      setupMarginEventListeners()
-    }
-  }
-}
-
-/**
- * Builds element hierarchy for selection
- */
-function buildElementHierarchy (element) {
-  elementHierarchy = []
-  let current = element
-
-  while (current && current !== document.body) {
-    elementHierarchy.push(current)
-    current = current.parentElement
-  }
-
-  debugLog('🏗️ Built element hierarchy:', elementHierarchy)
-  updateHierarchySelector()
-}
-
-/**
- * Updates the hierarchy selector dropdown
- */
-function updateHierarchySelector () {
-  const hierarchySelect = document.getElementById('ote-hierarchy-select')
-  const hierarchyGroup = document.getElementById('ote-element-hierarchy')
-
-  if (!hierarchySelect || !hierarchyGroup) return
-
-  // Clear existing options
-  hierarchySelect.innerHTML = '<option value="">Select element level...</option>'
-
-  if (elementHierarchy.length > 1) {
-    hierarchyGroup.style.display = 'block'
-
-    elementHierarchy.forEach((el, index) => {
-      const option = document.createElement('option')
-      option.value = index
-
-      // Create descriptive text for the element
-      let description = el.tagName.toLowerCase()
-      if (el.id) description += `#${el.id}`
-      if (el.classList.length > 0) {
-        const relevantClasses = Array.from(el.classList).filter(c => !c.startsWith('ojs-') && c !== 'hover')
-        if (relevantClasses.length > 0) {
-          description += `.${relevantClasses[0]}`
-        }
-      }
-
-      option.textContent = `${index === 0 ? '→ ' : '  '.repeat(index)}${description}`
-      if (index === 0) option.selected = true
-
-      hierarchySelect.appendChild(option)
-    })
+    console.log('✅ Export all button listener added')
   } else {
-    hierarchyGroup.style.display = 'none'
+    console.error('❌ Export all button not found!')
   }
-}
 
-/**
- * Selects element from hierarchy
- */
-function selectElementFromHierarchy (index) {
-  if (elementHierarchy[index]) {
-    // Remove highlight from current element
-    if (activeElement) {
-      activeElement.classList.remove(HIGHLIGHT_CLASS)
-    }
-
-    // Set new active element
-    activeElement = elementHierarchy[index]
-    activeElement.classList.add(HIGHLIGHT_CLASS)
-
-    // Update selector display
-    const selector = generateSelector(activeElement)
-    const selectorElement = document.getElementById('ote-current-selector')
-    if (selectorElement) selectorElement.textContent = selector
-
-    // Populate toolbox with new element
-    populateToolbox(activeElement)
-
-    debugLog('🎯 Selected element from hierarchy:', activeElement, selector)
-  }
-}
-
-/**
- * Populates height input fields
- */
-function populateHeightInput (value) {
-  const textInput = document.getElementById('ote-height-text')
-  const sliderInput = document.getElementById('ote-height-slider')
-  const unitSelect = document.getElementById('ote-height-unit')
-
-  debugLog(`📝 Populating height controls with value: ${value}`)
-
-  if (textInput) {
-    if (value === 'auto' || value === '') {
-      textInput.value = 'auto'
-      if (unitSelect) unitSelect.value = 'auto'
-      if (sliderInput) sliderInput.value = sliderInput.min || 10
-    } else {
-      // Extract numeric value and unit
-      const numericValue = extractNumericValue(value)
-      const unit = value.replace(numericValue.toString(), '') || 'px'
-
-      textInput.value = numericValue
-      if (unitSelect) unitSelect.value = unit
-      if (sliderInput && unit === 'px') {
-        sliderInput.value = numericValue
+  // Clear current page button
+  const clearCurrentBtn = document.getElementById('ote-clear-current-btn')
+  if (clearCurrentBtn) {
+    clearCurrentBtn.addEventListener('click', () => {
+      console.log('🗑️ Clear current page clicked')
+      if (confirm('Clear all styles for the current page? This cannot be undone.')) {
+        clearCurrentPageStyles()
+        updateOptionsStats()
       }
-    }
+    })
+    console.log('✅ Clear current button listener added')
+  } else {
+    console.error('❌ Clear current button not found!')
   }
+
+  // Clear all button
+  const clearAllBtn = document.getElementById('ote-clear-all-btn')
+  if (clearAllBtn) {
+    clearAllBtn.addEventListener('click', () => {
+      console.log('🗑️ Clear all clicked')
+      if (confirm('Clear ALL saved styles? This cannot be undone.')) {
+        clearAllStyles()
+        updateOptionsStats()
+      }
+    })
+    console.log('✅ Clear all button listener added')
+  } else {
+    console.error('❌ Clear all button not found!')
+  }
+
+  // About button
+  const aboutBtn = document.getElementById('ote-about-btn')
+  if (aboutBtn) {
+    aboutBtn.addEventListener('click', () => {
+      console.log('ℹ️ About clicked')
+      showAboutDialog()
+    })
+    console.log('✅ About button listener added')
+  } else {
+    console.error('❌ About button not found!')
+  }
+
+  console.log('✅ All options event listeners set up!')
 }
