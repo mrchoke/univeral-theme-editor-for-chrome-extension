@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "OJS3 Dynamic Theme Editor",
+  "name": "Universal Dynamic Theme Editor",
   "version": "1.0",
-  "description": "เครื่องมือสำหรับปรับแต่ง CSS ของ OJS3 แบบ Real-time และ Export ผลลัพธ์เพื่อนำไปใช้งานจริง",
+  "description": "Tools for real-time CSS customization and exporting the results for practical use.",
+  "author": "supphachoke.sun@nectec.or.th",
   "permissions": [
     "storage",
     "activeTab"

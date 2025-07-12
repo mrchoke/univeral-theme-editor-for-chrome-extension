@@ -2549,7 +2549,7 @@ function showAboutDialog () {
         color: white;
         text-align: center;
       ">
-        <h2 style="margin: 0 0 10px 0; font-size: 24px;">🎨 OJS3 Dynamic Theme Editor</h2>
+        <h2 style="margin: 0 0 10px 0; font-size: 24px;">🎨 Universal Dynamic Theme Editor</h2>
         <p style="margin: 0; opacity: 0.9;">Version 1.0</p>
       </div>
       
