@@ -5,28 +5,40 @@ let activeElement = null
 let cssRules = {} // Stores all the custom CSS rules. e.g. { ".selector": { "color": "#ff0000" } }
 let originalValues = {} // Stores original values for undo
 let currentHistory = {} // Stores current session changes for reset
+let debugMode = false // Debug mode toggle
+let elementHierarchy = [] // Store element hierarchy for selection
 const HIGHLIGHT_CLASS = 'ojs-editor-highlight'
+
+// Debug function
+function debugLog (...args) {
+  if (debugMode) {
+    console.log(...args)
+  }
+}
 
 // == INITIALIZATION ==
 function initializeExtension () {
-  console.log('🚀 Initializing OJS Theme Editor...')
+  debugLog('🚀 Initializing OJS Theme Editor...')
   loadState()
   createToggleButton() // Only create the toggle button initially
 
   // Set up global Alt+Click listener
   document.addEventListener('mousedown', handleElementSelection, true)
 
-  console.log('✅ OJS Theme Editor initialized successfully!')
+  // Load debug mode state
+  debugMode = localStorage.getItem('ote-debug-mode') === 'true'
+
+  debugLog('✅ OJS Theme Editor initialized successfully!')
 }
 
 /**
  * Initialize full extension when user first interacts
  */
 function initializeFullExtension () {
-  console.log('🔧 Initializing full extension features...')
+  debugLog('🔧 Initializing full extension features...')
   createToolbox()
   setupEventListeners()
-  console.log('✅ Full extension features initialized!')
+  debugLog('✅ Full extension features initialized!')
 }
 
 /**
@@ -63,6 +75,48 @@ function setupEventListeners () {
   if (borderExpandBtn) {
     borderExpandBtn.addEventListener('click', toggleBorderExpand)
   }
+
+  // Padding expand button
+  const paddingExpandBtn = document.getElementById('ote-padding-expand')
+  if (paddingExpandBtn) {
+    paddingExpandBtn.addEventListener('click', togglePaddingExpand)
+  }
+
+  // Margin expand button
+  const marginExpandBtn = document.getElementById('ote-margin-expand')
+  if (marginExpandBtn) {
+    marginExpandBtn.addEventListener('click', toggleMarginExpand)
+  }
+
+  // Debug toggle
+  const debugToggle = document.getElementById('ote-debug-toggle')
+  if (debugToggle) {
+    // Load saved debug state
+    debugToggle.checked = localStorage.getItem('ote-debug-mode') === 'true'
+    debugMode = debugToggle.checked
+
+    debugToggle.addEventListener('change', (e) => {
+      debugMode = e.target.checked
+      localStorage.setItem('ote-debug-mode', debugMode.toString())
+      debugLog('🐛 Debug mode:', debugMode ? 'ON' : 'OFF')
+    })
+  }
+
+  // Element hierarchy selector
+  const hierarchySelect = document.getElementById('ote-hierarchy-select')
+  if (hierarchySelect) {
+    hierarchySelect.addEventListener('change', (e) => {
+      if (e.target.value) {
+        const selectedIndex = parseInt(e.target.value)
+        if (elementHierarchy[selectedIndex]) {
+          selectElementFromHierarchy(selectedIndex)
+        }
+      }
+    })
+  }
+
+  // Height controls
+  setupHeightEventListeners()
 
   // Listen for changes in all input fields
   setupInputEventListeners()
@@ -421,11 +475,26 @@ function createToolbox () {
             <code class="ote-selector" id="ote-current-selector">No element selected</code>
             <div class="ote-header-buttons">
                 <button class="ote-action-btn" id="ote-undo-btn" title="Undo last change">↶</button>
-                <button class="ote-action-btn" id="ote-reset-btn" title="Reset to original">🔄</button>
                 <button class="ote-close-btn" id="ote-close-btn">&times;</button>
             </div>
         </div>
         <div class="ote-body">
+            <div class="ote-control-group">
+                <div class="ote-control-row" style="justify-content: space-between; margin-bottom: 10px;">
+                    <button class="ote-action-btn" id="ote-reset-btn" title="Reset to original" style="background: #ffc107; color: #212529;">🔄 Reset</button>
+                    <label style="display: flex; align-items: center; gap: 5px; font-size: 12px;">
+                        <input type="checkbox" id="ote-debug-toggle" style="margin: 0;">
+                        Debug Mode
+                    </label>
+                </div>
+            </div>
+            
+            <div class="ote-control-group" id="ote-element-hierarchy" style="display: none;">
+                <label>Element Hierarchy</label>
+                <select id="ote-hierarchy-select" style="width: 100%; margin-top: 5px;">
+                    <option value="">Select element level...</option>
+                </select>
+            </div>
             <div class="ote-control-group">
                 <label for="ote-color">Text Color</label>
                 <div class="ote-control-row">
@@ -452,20 +521,104 @@ function createToolbox () {
             </div>
             
             <div class="ote-control-group">
-                <label for="ote-padding">Padding</label>
+                <label for="ote-padding">
+                    Padding
+                    <button class="ote-expand-btn" id="ote-padding-expand" title="Expand padding controls">⚙️</button>
+                </label>
                 <div class="ote-control-row">
                     <input type="range" id="ote-padding-slider" min="0" max="100" step="1" class="ote-slider">
                     <input type="text" id="ote-padding-text" placeholder="10px">
                     <span class="ote-unit">px</span>
                 </div>
+                
+                <!-- Expanded padding controls (hidden by default) -->
+                <div id="ote-padding-expanded" class="ote-expanded-controls" style="display: none;">
+                    <div class="ote-spacing-sides">
+                        <h4>Individual Sides</h4>
+                        <div class="ote-spacing-side">
+                            <label>Top:</label>
+                            <input type="range" id="ote-padding-top-slider" min="0" max="100" step="1" class="ote-slider">
+                            <input type="text" id="ote-padding-top-text" placeholder="0px">
+                            <span class="ote-unit">px</span>
+                        </div>
+                        <div class="ote-spacing-side">
+                            <label>Right:</label>
+                            <input type="range" id="ote-padding-right-slider" min="0" max="100" step="1" class="ote-slider">
+                            <input type="text" id="ote-padding-right-text" placeholder="0px">
+                            <span class="ote-unit">px</span>
+                        </div>
+                        <div class="ote-spacing-side">
+                            <label>Bottom:</label>
+                            <input type="range" id="ote-padding-bottom-slider" min="0" max="100" step="1" class="ote-slider">
+                            <input type="text" id="ote-padding-bottom-text" placeholder="0px">
+                            <span class="ote-unit">px</span>
+                        </div>
+                        <div class="ote-spacing-side">
+                            <label>Left:</label>
+                            <input type="range" id="ote-padding-left-slider" min="0" max="100" step="1" class="ote-slider">
+                            <input type="text" id="ote-padding-left-text" placeholder="0px">
+                            <span class="ote-unit">px</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div class="ote-control-group">
-                <label for="ote-margin">Margin</label>
+                <label for="ote-margin">
+                    Margin
+                    <button class="ote-expand-btn" id="ote-margin-expand" title="Expand margin controls">⚙️</button>
+                </label>
                 <div class="ote-control-row">
                     <input type="range" id="ote-margin-slider" min="0" max="100" step="1" class="ote-slider">
                     <input type="text" id="ote-margin-text" placeholder="0px">
                     <span class="ote-unit">px</span>
+                </div>
+                
+                <!-- Expanded margin controls (hidden by default) -->
+                <div id="ote-margin-expanded" class="ote-expanded-controls" style="display: none;">
+                    <div class="ote-spacing-sides">
+                        <h4>Individual Sides</h4>
+                        <div class="ote-spacing-side">
+                            <label>Top:</label>
+                            <input type="range" id="ote-margin-top-slider" min="0" max="100" step="1" class="ote-slider">
+                            <input type="text" id="ote-margin-top-text" placeholder="0px">
+                            <span class="ote-unit">px</span>
+                        </div>
+                        <div class="ote-spacing-side">
+                            <label>Right:</label>
+                            <input type="range" id="ote-margin-right-slider" min="0" max="100" step="1" class="ote-slider">
+                            <input type="text" id="ote-margin-right-text" placeholder="0px">
+                            <span class="ote-unit">px</span>
+                        </div>
+                        <div class="ote-spacing-side">
+                            <label>Bottom:</label>
+                            <input type="range" id="ote-margin-bottom-slider" min="0" max="100" step="1" class="ote-slider">
+                            <input type="text" id="ote-margin-bottom-text" placeholder="0px">
+                            <span class="ote-unit">px</span>
+                        </div>
+                        <div class="ote-spacing-side">
+                            <label>Left:</label>
+                            <input type="range" id="ote-margin-left-slider" min="0" max="100" step="1" class="ote-slider">
+                            <input type="text" id="ote-margin-left-text" placeholder="0px">
+                            <span class="ote-unit">px</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="ote-control-group">
+                <label for="ote-height">Height</label>
+                <div class="ote-control-row">
+                    <input type="range" id="ote-height-slider" min="10" max="500" step="1" class="ote-slider">
+                    <input type="text" id="ote-height-text" placeholder="auto">
+                    <select id="ote-height-unit" style="width: 60px;">
+                        <option value="px">px</option>
+                        <option value="%">%</option>
+                        <option value="em">em</option>
+                        <option value="rem">rem</option>
+                        <option value="vh">vh</option>
+                        <option value="auto">auto</option>
+                    </select>
                 </div>
             </div>
             
@@ -598,16 +751,18 @@ function createToolbox () {
 function handleElementSelection (e) {
   if (!e.altKey) return // Only activate on Alt key press
 
-  console.log('🖱️ Element selection triggered with Alt key:', e.target)
+  debugLog('🖱️ Element selection triggered with Alt key:', e.target)
+
+  // Prevent default behavior (especially for links)
+  e.preventDefault()
+  e.stopPropagation()
+  e.stopImmediatePropagation()
 
   // Initialize full extension if not already done
   if (!document.getElementById('ojs-theme-editor-toolbox')) {
-    console.log('🔧 Initializing full extension for Alt+Click...')
+    debugLog('🔧 Initializing full extension for Alt+Click...')
     initializeFullExtension()
   }
-
-  e.preventDefault()
-  e.stopPropagation()
 
   const target = e.target
 
@@ -630,12 +785,15 @@ function handleElementSelection (e) {
   activeElement = target
   activeElement.classList.add(HIGHLIGHT_CLASS)
 
+  // Build element hierarchy for multi-level selection
+  buildElementHierarchy(activeElement)
+
   // Store original values for undo functionality
   storeOriginalValues(activeElement)
 
   // Update and show the toolbox
   const selector = generateSelector(activeElement)
-  console.log('✅ Selected element with selector:', selector)
+  debugLog('✅ Selected element with selector:', selector)
 
   const selectorElement = document.getElementById('ote-current-selector')
   if (selectorElement) selectorElement.textContent = selector
@@ -781,6 +939,7 @@ function populateToolbox (el) {
   populateValueInput('font-size', fontSize)
   populateValueInput('padding', padding)
   populateValueInput('margin', margin)
+  populateHeightInput(height)
 
   // Populate border controls
   populateBorderControls(el, computedStyle)
@@ -2213,72 +2372,256 @@ function updateShadow () {
 }
 
 /**
- * Sets up event listeners for dimension controls
+ * Sets up event listeners for height controls
  */
-function setupDimensionEventListeners () {
-  const widthSlider = document.getElementById('ote-width-slider')
-  const widthText = document.getElementById('ote-width-text')
+function setupHeightEventListeners () {
   const heightSlider = document.getElementById('ote-height-slider')
   const heightText = document.getElementById('ote-height-text')
-  const maintainRatio = document.getElementById('ote-maintain-aspect-ratio')
+  const heightUnit = document.getElementById('ote-height-unit')
 
-  let aspectRatio = 1
+  const updateHeight = () => {
+    const value = heightText?.value || '0'
+    const unit = heightUnit?.value || 'px'
 
-  if (widthSlider) {
-    widthSlider.addEventListener('input', (e) => {
-      const value = e.target.value + 'px'
-      if (widthText) widthText.value = value
-
-      if (maintainRatio?.checked && heightSlider && heightText) {
-        const newHeight = Math.round(parseInt(e.target.value) / aspectRatio)
-        heightSlider.value = newHeight
-        heightText.value = newHeight + 'px'
-        applyStyle('height', newHeight + 'px')
-      }
-
-      applyStyle('width', value)
-    })
+    if (value === 'auto' || unit === 'auto') {
+      applyStyle('height', 'auto')
+    } else {
+      const heightValue = unit === 'px' ? value + unit : value + unit
+      applyStyle('height', heightValue)
+    }
   }
 
   if (heightSlider) {
     heightSlider.addEventListener('input', (e) => {
-      const value = e.target.value + 'px'
-      if (heightText) heightText.value = value
-
-      if (maintainRatio?.checked && widthSlider && widthText) {
-        const newWidth = Math.round(parseInt(e.target.value) * aspectRatio)
-        widthSlider.value = newWidth
-        widthText.value = newWidth + 'px'
-        applyStyle('width', newWidth + 'px')
+      const unit = heightUnit?.value || 'px'
+      if (unit !== 'auto') {
+        const value = e.target.value + unit
+        if (heightText) heightText.value = e.target.value
+        applyStyle('height', value)
       }
-
-      applyStyle('height', value)
-    })
-  }
-
-  if (widthText) {
-    widthText.addEventListener('input', (e) => {
-      const numValue = extractNumericValue(e.target.value)
-      if (widthSlider) widthSlider.value = numValue
-      applyStyle('width', e.target.value)
     })
   }
 
   if (heightText) {
     heightText.addEventListener('input', (e) => {
-      const numValue = extractNumericValue(e.target.value)
-      if (heightSlider) heightSlider.value = numValue
-      applyStyle('height', e.target.value)
+      const value = e.target.value
+      if (value === 'auto') {
+        applyStyle('height', 'auto')
+        if (heightUnit) heightUnit.value = 'auto'
+      } else {
+        if (heightSlider && !isNaN(value)) {
+          heightSlider.value = extractNumericValue(value)
+        }
+        updateHeight()
+      }
     })
   }
 
-  // Calculate aspect ratio when element is selected
-  if (activeElement && isImageElement(activeElement)) {
-    const computedStyle = getComputedStyle(activeElement)
-    const width = extractNumericValue(computedStyle.width)
-    const height = extractNumericValue(computedStyle.height)
-    if (width && height) {
-      aspectRatio = width / height
+  if (heightUnit) {
+    heightUnit.addEventListener('change', updateHeight)
+  }
+}
+
+/**
+ * Sets up event listeners for individual padding sides
+ */
+function setupPaddingEventListeners () {
+  const sides = ['top', 'right', 'bottom', 'left']
+
+  sides.forEach(side => {
+    const slider = document.getElementById(`ote-padding-${side}-slider`)
+    const text = document.getElementById(`ote-padding-${side}-text`)
+
+    if (slider) {
+      slider.addEventListener('input', (e) => {
+        const value = e.target.value + 'px'
+        applyStyle(`padding-${side}`, value)
+        if (text) text.value = e.target.value
+      })
+    }
+
+    if (text) {
+      text.addEventListener('input', (e) => {
+        applyStyle(`padding-${side}`, e.target.value)
+        if (slider) slider.value = extractNumericValue(e.target.value)
+      })
+    }
+  })
+}
+
+/**
+ * Sets up event listeners for individual margin sides
+ */
+function setupMarginEventListeners () {
+  const sides = ['top', 'right', 'bottom', 'left']
+
+  sides.forEach(side => {
+    const slider = document.getElementById(`ote-margin-${side}-slider`)
+    const text = document.getElementById(`ote-margin-${side}-text`)
+
+    if (slider) {
+      slider.addEventListener('input', (e) => {
+        const value = e.target.value + 'px'
+        applyStyle(`margin-${side}`, value)
+        if (text) text.value = e.target.value
+      })
+    }
+
+    if (text) {
+      text.addEventListener('input', (e) => {
+        applyStyle(`margin-${side}`, e.target.value)
+        if (slider) slider.value = extractNumericValue(e.target.value)
+      })
+    }
+  })
+}
+
+/**
+ * Toggles the expanded padding controls
+ */
+function togglePaddingExpand () {
+  const expandedControls = document.getElementById('ote-padding-expanded')
+  const expandBtn = document.getElementById('ote-padding-expand')
+
+  if (expandedControls && expandBtn) {
+    const isExpanded = expandedControls.style.display !== 'none'
+    expandedControls.style.display = isExpanded ? 'none' : 'block'
+    expandBtn.textContent = isExpanded ? '⚙️' : '📐'
+    expandBtn.title = isExpanded ? 'Expand padding controls' : 'Collapse padding controls'
+
+    // Setup event listeners when first expanded
+    if (!isExpanded) {
+      setupPaddingEventListeners()
+    }
+  }
+}
+
+/**
+ * Toggles the expanded margin controls
+ */
+function toggleMarginExpand () {
+  const expandedControls = document.getElementById('ote-margin-expanded')
+  const expandBtn = document.getElementById('ote-margin-expand')
+
+  if (expandedControls && expandBtn) {
+    const isExpanded = expandedControls.style.display !== 'none'
+    expandedControls.style.display = isExpanded ? 'none' : 'block'
+    expandBtn.textContent = isExpanded ? '⚙️' : '📐'
+    expandBtn.title = isExpanded ? 'Expand margin controls' : 'Collapse margin controls'
+
+    // Setup event listeners when first expanded
+    if (!isExpanded) {
+      setupMarginEventListeners()
+    }
+  }
+}
+
+/**
+ * Builds element hierarchy for selection
+ */
+function buildElementHierarchy (element) {
+  elementHierarchy = []
+  let current = element
+
+  while (current && current !== document.body) {
+    elementHierarchy.push(current)
+    current = current.parentElement
+  }
+
+  debugLog('🏗️ Built element hierarchy:', elementHierarchy)
+  updateHierarchySelector()
+}
+
+/**
+ * Updates the hierarchy selector dropdown
+ */
+function updateHierarchySelector () {
+  const hierarchySelect = document.getElementById('ote-hierarchy-select')
+  const hierarchyGroup = document.getElementById('ote-element-hierarchy')
+
+  if (!hierarchySelect || !hierarchyGroup) return
+
+  // Clear existing options
+  hierarchySelect.innerHTML = '<option value="">Select element level...</option>'
+
+  if (elementHierarchy.length > 1) {
+    hierarchyGroup.style.display = 'block'
+
+    elementHierarchy.forEach((el, index) => {
+      const option = document.createElement('option')
+      option.value = index
+
+      // Create descriptive text for the element
+      let description = el.tagName.toLowerCase()
+      if (el.id) description += `#${el.id}`
+      if (el.classList.length > 0) {
+        const relevantClasses = Array.from(el.classList).filter(c => !c.startsWith('ojs-') && c !== 'hover')
+        if (relevantClasses.length > 0) {
+          description += `.${relevantClasses[0]}`
+        }
+      }
+
+      option.textContent = `${index === 0 ? '→ ' : '  '.repeat(index)}${description}`
+      if (index === 0) option.selected = true
+
+      hierarchySelect.appendChild(option)
+    })
+  } else {
+    hierarchyGroup.style.display = 'none'
+  }
+}
+
+/**
+ * Selects element from hierarchy
+ */
+function selectElementFromHierarchy (index) {
+  if (elementHierarchy[index]) {
+    // Remove highlight from current element
+    if (activeElement) {
+      activeElement.classList.remove(HIGHLIGHT_CLASS)
+    }
+
+    // Set new active element
+    activeElement = elementHierarchy[index]
+    activeElement.classList.add(HIGHLIGHT_CLASS)
+
+    // Update selector display
+    const selector = generateSelector(activeElement)
+    const selectorElement = document.getElementById('ote-current-selector')
+    if (selectorElement) selectorElement.textContent = selector
+
+    // Populate toolbox with new element
+    populateToolbox(activeElement)
+
+    debugLog('🎯 Selected element from hierarchy:', activeElement, selector)
+  }
+}
+
+/**
+ * Populates height input fields
+ */
+function populateHeightInput (value) {
+  const textInput = document.getElementById('ote-height-text')
+  const sliderInput = document.getElementById('ote-height-slider')
+  const unitSelect = document.getElementById('ote-height-unit')
+
+  debugLog(`📝 Populating height controls with value: ${value}`)
+
+  if (textInput) {
+    if (value === 'auto' || value === '') {
+      textInput.value = 'auto'
+      if (unitSelect) unitSelect.value = 'auto'
+      if (sliderInput) sliderInput.value = sliderInput.min || 10
+    } else {
+      // Extract numeric value and unit
+      const numericValue = extractNumericValue(value)
+      const unit = value.replace(numericValue.toString(), '') || 'px'
+
+      textInput.value = numericValue
+      if (unitSelect) unitSelect.value = unit
+      if (sliderInput && unit === 'px') {
+        sliderInput.value = numericValue
+      }
     }
   }
 }
