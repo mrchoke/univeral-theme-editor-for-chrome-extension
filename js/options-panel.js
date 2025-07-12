@@ -21,8 +21,11 @@ function showOptionsPanel () {
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
-    width: 400px !important;
-    max-height: 500px !important;
+    width: 600px !important;
+    min-width: 400px !important;
+    max-width: 90vw !important;
+    min-height: 400px !important;
+    max-height: 80vh !important;
     background: white !important;
     border: 1px solid #e0e0e0 !important;
     border-radius: 12px !important;
@@ -33,10 +36,15 @@ function showOptionsPanel () {
     overflow: hidden !important;
     display: block !important;
     visibility: visible !important;
+    resize: both !important;
+    cursor: auto !important;
   `
 
   document.body.appendChild(optionsPanel)
   console.log('✅ Options panel added to DOM')
+
+  // Make the panel draggable
+  makePanelDraggable(optionsPanel)
 
   // Update statistics
   updateOptionsStats()
@@ -82,8 +90,9 @@ function getOptionsPanelHTML () {
     </div>
     <div class="ote-options-body" style="
       padding: 20px;
-      max-height: 400px;
+      height: calc(100% - 70px);
       overflow-y: auto;
+      overflow-x: hidden;
     ">
       <div class="ote-options-section" style="margin-bottom: 25px;">
         <h4 style="
@@ -338,12 +347,16 @@ function showAboutDialog () {
   const aboutDialog = document.createElement('div')
   aboutDialog.id = 'ote-about-dialog'
   aboutDialog.innerHTML = `
-    <div style="
+    <div id="ote-about-content" style="
       position: fixed;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 450px;
+      width: 650px;
+      min-width: 500px;
+      max-width: 90vw;
+      min-height: 500px;
+      max-height: 90vh;
       background: white;
       border: 1px solid #e0e0e0;
       border-radius: 12px;
@@ -352,56 +365,84 @@ function showAboutDialog () {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       color: #333;
       overflow: hidden;
+      resize: both;
+      cursor: auto;
     ">
-      <div style="
-        padding: 20px;
+      <div class="ote-about-header" style="
+        padding: 25px;
         background: linear-gradient(135deg, #007bff, #0056b3);
         color: white;
         text-align: center;
+        cursor: move;
+        position: relative;
       ">
-        <h2 style="margin: 0 0 10px 0; font-size: 24px;">🎨 Universal Dynamic Theme Editor</h2>
-        <p style="margin: 0; opacity: 0.9;">Version 1.0</p>
+        <h2 style="margin: 0 0 10px 0; font-size: 28px;">🎨 Universal Dynamic Theme Editor</h2>
+        <p style="margin: 0; opacity: 0.9; font-size: 16px;">Version 1.0</p>
+        <button class="ote-about-close-btn" style="
+          position: absolute;
+          top: 15px;
+          right: 15px;
+          background: none;
+          border: none;
+          color: white;
+          font-size: 24px;
+          cursor: pointer;
+          padding: 0;
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          transition: background-color 0.2s;
+        " onmouseover="this.style.backgroundColor='rgba(255,255,255,0.2)'" onmouseout="this.style.backgroundColor='transparent'" onclick="this.closest('#ote-about-dialog').remove()">&times;</button>
       </div>
       
-      <div style="padding: 20px;">
-        <h3 style="margin: 0 0 15px 0; color: #007bff;">✨ Features</h3>
-        <ul style="margin: 0 0 20px 0; padding-left: 20px; line-height: 1.6;">
-          <li>Real-time CSS editing for any websites</li>
-          <li>Visual element selection with Alt + Click</li>
-          <li>Live preview of style changes</li>
-          <li>Export custom CSS for production use</li>
-          <li>Persistent storage of your modifications</li>
+      <div style="
+        padding: 25px;
+        height: calc(100% - 120px);
+        overflow-y: auto;
+        overflow-x: hidden;
+        font-size: 15px;
+        line-height: 1.6;
+      ">
+        <h3 style="margin: 0 0 18px 0; color: #007bff; font-size: 20px;">✨ Features</h3>
+        <ul style="margin: 0 0 25px 0; padding-left: 25px; line-height: 1.8;">
+          <li style="margin-bottom: 8px;">Real-time CSS editing for any websites</li>
+          <li style="margin-bottom: 8px;">Visual element selection with Alt + Click</li>
+          <li style="margin-bottom: 8px;">Live preview of style changes</li>
+          <li style="margin-bottom: 8px;">Export custom CSS for production use</li>
+          <li style="margin-bottom: 8px;">Persistent storage of your modifications</li>
         </ul>
         
-        <h3 style="margin: 0 0 15px 0; color: #007bff;">🚀 How to Use</h3>
-        <ol style="margin: 0 0 20px 0; padding-left: 20px; line-height: 1.6;">
-          <li>Click the 🎨 button to open options</li>
-          <li>Select "Start Editing" or hold Alt + Click on any element</li>
-          <li>Use the toolbox to modify colors, fonts, spacing, etc.</li>
-          <li>Export your changes when ready for production</li>
+        <h3 style="margin: 0 0 18px 0; color: #007bff; font-size: 20px;">🚀 How to Use</h3>
+        <ol style="margin: 0 0 25px 0; padding-left: 25px; line-height: 1.8;">
+          <li style="margin-bottom: 8px;">Click the 🎨 button to open options</li>
+          <li style="margin-bottom: 8px;">Select "Start Editing" or hold Alt + Click on any element</li>
+          <li style="margin-bottom: 8px;">Use the toolbox to modify colors, fonts, spacing, etc.</li>
+          <li style="margin-bottom: 8px;">Export your changes when ready for production</li>
         </ol>
         
         <div style="
           background: #f8f9fa;
-          padding: 15px;
+          padding: 20px;
           border-radius: 8px;
           border-left: 4px solid #007bff;
-          margin-bottom: 20px;
+          margin-bottom: 25px;
+          font-size: 15px;
         ">
-          <strong>💡 Pro Tip:</strong> You can drag the 🎨 button anywhere on the screen!
+          <strong>💡 Pro Tip:</strong> You can drag both the 🎨 button and this dialog anywhere on the screen! You can also resize this dialog by dragging from the bottom-right corner.
         </div>
         
-        <div style="text-align: center;">
+        <div style="text-align: center; margin-top: 30px;">
           <button style="
             background: #007bff;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 25px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
-          " onclick="this.closest('#ote-about-dialog').remove()">
+            transition: background-color 0.2s;
+          " onmouseover="this.style.backgroundColor='#0056b3'" onmouseout="this.style.backgroundColor='#007bff'" onclick="this.closest('#ote-about-dialog').remove()">
             Got it! 👍
           </button>
         </div>
@@ -424,6 +465,11 @@ function showAboutDialog () {
 
   aboutDialog.appendChild(backdrop)
   document.body.appendChild(aboutDialog)
+
+  // Make the about dialog draggable
+  const aboutContent = aboutDialog.querySelector('#ote-about-content')
+  const aboutHeader = aboutDialog.querySelector('.ote-about-header')
+  makeAboutDialogDraggable(aboutContent, aboutHeader)
 }
 
 /**
@@ -534,4 +580,114 @@ function setupOptionsEventListeners () {
   }
 
   console.log('✅ All options event listeners set up!')
+}
+
+/**
+ * Makes a panel draggable by its header
+ */
+function makePanelDraggable (panel) {
+  const header = panel.querySelector('.ote-options-header')
+  if (!header) return
+
+  let isDragging = false
+  let dragOffset = { x: 0, y: 0 }
+
+  // Make header draggable
+  header.style.cursor = 'move'
+
+  header.addEventListener('mousedown', (e) => {
+    // Don't drag if clicking on close button
+    if (e.target.closest('.ote-close-btn')) return
+
+    isDragging = true
+    const rect = panel.getBoundingClientRect()
+    dragOffset.x = e.clientX - rect.left
+    dragOffset.y = e.clientY - rect.top
+
+    // Change cursor for body
+    document.body.style.cursor = 'move'
+
+    // Prevent text selection
+    e.preventDefault()
+  })
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return
+
+    e.preventDefault()
+
+    const x = e.clientX - dragOffset.x
+    const y = e.clientY - dragOffset.y
+
+    // Keep panel within viewport bounds
+    const maxX = window.innerWidth - panel.offsetWidth
+    const maxY = window.innerHeight - panel.offsetHeight
+
+    const boundedX = Math.max(0, Math.min(x, maxX))
+    const boundedY = Math.max(0, Math.min(y, maxY))
+
+    panel.style.left = boundedX + 'px'
+    panel.style.top = boundedY + 'px'
+    panel.style.transform = 'none'
+  })
+
+  document.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false
+      document.body.style.cursor = 'auto'
+    }
+  })
+}
+
+/**
+ * Makes the about dialog draggable by its header
+ */
+function makeAboutDialogDraggable (dialogContent, header) {
+  if (!header) return
+
+  let isDragging = false
+  let dragOffset = { x: 0, y: 0 }
+
+  header.addEventListener('mousedown', (e) => {
+    // Don't drag if clicking on close button
+    if (e.target.closest('.ote-about-close-btn')) return
+
+    isDragging = true
+    const rect = dialogContent.getBoundingClientRect()
+    dragOffset.x = e.clientX - rect.left
+    dragOffset.y = e.clientY - rect.top
+
+    // Change cursor for body
+    document.body.style.cursor = 'move'
+
+    // Prevent text selection
+    e.preventDefault()
+  })
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return
+
+    e.preventDefault()
+
+    const x = e.clientX - dragOffset.x
+    const y = e.clientY - dragOffset.y
+
+    // Keep dialog within viewport bounds
+    const maxX = window.innerWidth - dialogContent.offsetWidth
+    const maxY = window.innerHeight - dialogContent.offsetHeight
+
+    const boundedX = Math.max(0, Math.min(x, maxX))
+    const boundedY = Math.max(0, Math.min(y, maxY))
+
+    dialogContent.style.left = boundedX + 'px'
+    dialogContent.style.top = boundedY + 'px'
+    dialogContent.style.transform = 'none'
+  })
+
+  document.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false
+      document.body.style.cursor = 'auto'
+    }
+  })
 }
