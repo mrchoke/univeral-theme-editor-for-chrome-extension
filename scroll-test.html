@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+  <title>Scroll Test - Universal Theme Editor</title>
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7);
+      min-height: 100vh;
+    }
+
+    .test-content {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .test-element {
+      margin: 20px 0;
+      padding: 20px;
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .test-element:hover {
+      background: #e9ecef;
+      transform: translateY(-2px);
+    }
+
+    .small-window-test {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: #007bff;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .small-window-test:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="test-content">
+    <h1>🎨 Universal Theme Editor - Scroll Test</h1>
+    <p>This page tests the scrolling functionality of the toolbox when the window is small.</p>
+
+    <div
+      class="test-element"
+      data-test="text"
+    >
+      <h2>Test Element 1</h2>
+      <p>Click this element and then resize the toolbox to be very small to test scrolling.</p>
+    </div>
+
+    <div
+      class="test-element"
+      data-test="background"
+    >
+      <h2>Test Element 2</h2>
+      <p>This element has different styling options to test various controls.</p>
+    </div>
+
+    <div
+      class="test-element"
+      data-test="border"
+    >
+      <h2>Test Element 3</h2>
+      <p>Test border, padding, margin controls with this element.</p>
+    </div>
+
+    <div
+      class="test-element"
+      data-test="mixed"
+    >
+      <h2>Test Element 4</h2>
+      <p>Complex element for testing multiple style properties at once.</p>
+    </div>
+
+    <button
+      class="small-window-test"
+      onclick="makeSmallWindow()"
+    >
+      📱 Make Small Window Test
+    </button>
+  </div>
+
+  <!-- Include all JavaScript files -->
+  <script src="js/globals.js"></script>
+  <script src="js/ui-components.js"></script>
+  <script src="js/options-panel.js"></script>
+  <script src="js/event-listeners.js"></script>
+  <script src="js/style-applier.js"></script>
+  <script src="js/element-handlers.js"></script>
+  <script src="js/toolbox-populators.js"></script>
+  <script src="js/main.js"></script>
+
+  <script>
+    // Function to test small window
+    function makeSmallWindow () {
+      // Resize window to small size to test scrolling
+      if (window.resizeTo) {
+        window.resizeTo(400, 300)
+      } else {
+        alert('Manual test: Please resize your browser window to be very small (400x300) and test the toolbox scrolling.')
+      }
+    }
+
+    // Add special styling for testing
+    document.addEventListener('DOMContentLoaded', function () {
+      // Initialize the extension
+      if (typeof initializeFullExtension === 'function') {
+        initializeFullExtension()
+      }
+
+      console.log('🧪 Scroll test page loaded')
+      console.log('📏 Instructions:')
+      console.log('1. Click the toggle button (🎨) to open the toolbox')
+      console.log('2. Click on any test element to select it')
+      console.log('3. Resize the toolbox to be very small')
+      console.log('4. Check if you can scroll to see all controls')
+    });
+  </script>
+</body>
+
+</html>

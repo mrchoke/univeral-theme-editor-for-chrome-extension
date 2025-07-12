@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+  <title>Small Window Scroll Test</title>
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+  <style>
+    body {
+      margin: 0;
+      padding: 10px;
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      height: 300px;
+      /* Simulate small window */
+      overflow: hidden;
+    }
+
+    .small-container {
+      height: 100%;
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      overflow: auto;
+    }
+
+    .test-element {
+      background: #e9ecef;
+      border: 2px solid #dee2e6;
+      border-radius: 6px;
+      padding: 15px;
+      margin: 10px 0;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .test-element:hover {
+      background: #dee2e6;
+      border-color: #007bff;
+    }
+
+    .test-element.selected {
+      background: #cfe2ff;
+      border-color: #007bff;
+    }
+
+    .instructions {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      border-radius: 4px;
+      padding: 10px;
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+
+    .status {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: #28a745;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      z-index: 1000000;
+    }
+  </style>
+</head>
+
+<body>
+  <div
+    class="status"
+    id="status"
+  >Small Window Mode</div>
+
+  <div class="small-container">
+    <div class="instructions">
+      <strong>📱 Small Window Scroll Test</strong><br>
+      1. Click the toggle button (🎨) to open toolbox<br>
+      2. Click any element below to select it<br>
+      3. Try to scroll in the toolbox to access all controls<br>
+      4. Resize toolbox smaller to test extreme cases
+    </div>
+
+    <div
+      class="test-element"
+      onclick="selectElement(this)"
+    >
+      <h3>🎨 Text Element</h3>
+      <p>Click to test text styling controls. Should be able to scroll to see all font, color, and shadow options.</p>
+    </div>
+
+    <div
+      class="test-element"
+      onclick="selectElement(this)"
+    >
+      <h3>📦 Box Element</h3>
+      <p>Test padding, margin, border controls. These are in the middle section of the toolbox.</p>
+    </div>
+
+    <div
+      class="test-element"
+      onclick="selectElement(this)"
+    >
+      <h3>🎯 Complex Element</h3>
+      <p>Test all controls including gradients, shadows, and export. Footer should always be visible.</p>
+    </div>
+
+    <div
+      class="test-element"
+      onclick="selectElement(this)"
+    >
+      <h3>🔧 Final Test</h3>
+      <p>Last element to ensure scroll works for all content areas in the toolbox.</p>
+    </div>
+  </div>
+
+  <!-- Include all scripts -->
+  <script src="js/globals.js"></script>
+  <script src="js/ui-components.js"></script>
+  <script src="js/options-panel.js"></script>
+  <script src="js/event-listeners.js"></script>
+  <script src="js/style-applier.js"></script>
+  <script src="js/element-handlers.js"></script>
+  <script src="js/toolbox-populators.js"></script>
+  <script src="js/main.js"></script>
+
+  <script>
+    let selectedElement = null
+
+    function selectElement (element) {
+      // Remove previous selection
+      if (selectedElement) {
+        selectedElement.classList.remove('selected')
+      }
+
+      // Select new element
+      selectedElement = element
+      element.classList.add('selected')
+
+      // Trigger extension element selection
+      if (typeof window.selectElementForEditing === 'function') {
+        window.selectElementForEditing(element)
+      }
+
+      console.log('Element selected:', element.querySelector('h3').textContent)
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function () {
+      console.log('🧪 Small window scroll test initialized')
+
+      // Force small window simulation
+      document.body.style.height = '300px'
+      document.documentElement.style.height = '300px'
+
+      // Initialize extension
+      if (typeof initializeFullExtension === 'function') {
+        initializeFullExtension()
+      }
+    })
+
+    // Update status
+    setInterval(() => {
+      const toolbox = document.getElementById('universal-theme-editor-toolbox')
+      const status = document.getElementById('status')
+      if (toolbox && toolbox.style.display !== 'none') {
+        const rect = toolbox.getBoundingClientRect()
+        status.textContent = `Toolbox: ${Math.round(rect.width)}x${Math.round(rect.height)}`
+      } else {
+        status.textContent = 'Toolbox: Hidden'
+      }
+    }, 1000);
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+  <title>Scroll Test - Universal Theme Editor</title>
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      min-height: 200vh;
+      /* Make page scrollable */
+      background: linear-gradient(45deg, #f0f8ff, #e6f3ff);
+    }
+
+    .test-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+
+    .test-section {
+      margin-bottom: 40px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #f9f9f9;
+    }
+
+    .test-button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+      font-size: 14px;
+    }
+
+    .test-button:hover {
+      background: #0056b3;
+    }
+
+    .scroll-indicator {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      z-index: 1000000;
+    }
+
+    .content-block {
+      height: 300px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      margin: 20px 0;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <div
+    class="scroll-indicator"
+    id="scrollIndicator"
+  >
+    Page Scroll: 0px
+  </div>
+
+  <div class="test-container">
+    <h1>🔍 Scroll Test - Universal Theme Editor</h1>
+    <p>This page tests the scroll functionality of the Universal Theme Editor toolbox.</p>
+
+    <div class="test-section">
+      <h2>📋 Test Instructions</h2>
+      <ol>
+        <li>Click the theme editor button (🎨) to open the toolbox</li>
+        <li>Try scrolling inside the toolbox with your mouse wheel</li>
+        <li>Verify that the page doesn't scroll when scrolling inside the toolbox</li>
+        <li>Test on different screen sizes by resizing your browser window</li>
+        <li>Test with a small window height to see vertical scrolling</li>
+      </ol>
+    </div>
+
+    <div class="test-section">
+      <h2>🎯 Test Elements</h2>
+      <p>Click on these elements to select them in the theme editor:</p>
+      <button
+        class="test-button"
+        id="testBtn1"
+      >Test Button 1</button>
+      <button
+        class="test-button"
+        id="testBtn2"
+        style="background: #28a745;"
+      >Test Button 2</button>
+      <button
+        class="test-button"
+        id="testBtn3"
+        style="background: #dc3545;"
+      >Test Button 3</button>
+
+      <h3>Test Headings</h3>
+      <h4>This is a test heading 4</h4>
+      <h5>This is a test heading 5</h5>
+
+      <p>This is a test paragraph with some <strong>bold text</strong> and <em>italic text</em>.</p>
+    </div>
+
+    <div class="test-section">
+      <h2>✅ Expected Behavior</h2>
+      <ul>
+        <li>✅ Toolbox should be scrollable internally</li>
+        <li>✅ Page should NOT scroll when scrolling inside toolbox</li>
+        <li>✅ Toolbox should show scrollbar when content overflows</li>
+        <li>✅ Toolbox should resize properly on small screens</li>
+        <li>✅ Smooth scrolling should work inside toolbox</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="content-block">Scroll Content Block 1</div>
+  <div class="content-block">Scroll Content Block 2</div>
+  <div class="content-block">Scroll Content Block 3</div>
+  <div class="content-block">Scroll Content Block 4</div>
+  <div class="content-block">Scroll Content Block 5</div>
+
+  <!-- Universal Theme Editor Scripts -->
+  <script src="js/globals.js"></script>
+  <script src="js/ui-components.js"></script>
+  <script src="js/event-listeners.js"></script>
+  <script src="js/style-applier.js"></script>
+  <script src="js/element-handlers.js"></script>
+  <script src="js/toolbox-populators.js"></script>
+  <script src="js/options-panel.js"></script>
+  <script src="js/main.js"></script>
+
+  <script>
+    // Track page scroll
+    window.addEventListener('scroll', () => {
+      const scrollIndicator = document.getElementById('scrollIndicator')
+      if (scrollIndicator) {
+        scrollIndicator.textContent = `Page Scroll: ${Math.round(window.pageYOffset)}px`
+      }
+    })
+
+    // Add some test styles to elements
+    document.addEventListener('DOMContentLoaded', () => {
+      const testBtn2 = document.getElementById('testBtn2')
+      const testBtn3 = document.getElementById('testBtn3')
+
+      if (testBtn2) {
+        testBtn2.style.fontSize = '16px'
+        testBtn2.style.padding = '12px 24px'
+      }
+
+      if (testBtn3) {
+        testBtn3.style.borderRadius = '20px'
+        testBtn3.style.fontSize = '14px'
+      }
+    });
+  </script>
+</body>
+
+</html>
