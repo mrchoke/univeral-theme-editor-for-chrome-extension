@@ -87,7 +87,7 @@ function setupInputEventListeners () {
   ]
 
   basicControls.forEach(control => {
-    // Handle special case for background-color which uses different IDs
+    // Handle special case for background-color IDs
     let textInputId, colorInputId, sliderInputId
     if (control.prop === 'background-color') {
       textInputId = 'ote-bg-color-text'
@@ -105,25 +105,45 @@ function setupInputEventListeners () {
 
     if (textInput) {
       textInput.addEventListener('input', (e) => {
-        // Skip background-color as it's handled separately in setupGradientEventListeners
-        if (control.prop === 'background-color') {
-          return
-        }
         applyStyle(control.prop, e.target.value)
         if (sliderInput && control.hasSlider) {
           sliderInput.value = extractNumericValue(e.target.value)
+        }
+
+        // For background-color, also update gradient state
+        if (control.prop === 'background-color') {
+          const gradientToggle = document.getElementById('ote-bg-gradient-toggle')
+          if (!gradientToggle?.checked) {
+            // Make sure we're applying solid color, not gradient
+            applyStyle('background', 'none')
+            applyStyle('background-color', e.target.value)
+          } else {
+            // Update gradient with new color
+            updateGradient()
+          }
         }
       })
     }
 
     if (colorInput) {
       colorInput.addEventListener('input', (e) => {
-        // Skip background-color as it's handled separately in setupGradientEventListeners
-        if (control.prop === 'background-color') {
-          return
-        }
-        applyStyle(control.prop, e.target.value)
         if (textInput) textInput.value = e.target.value
+
+        // For background-color, handle gradient state properly
+        if (control.prop === 'background-color') {
+          const gradientToggle = document.getElementById('ote-bg-gradient-toggle')
+          if (!gradientToggle?.checked) {
+            // Apply solid color
+            applyStyle('background', 'none')
+            applyStyle('background-color', e.target.value)
+          } else {
+            // Update gradient with new color
+            updateGradient()
+          }
+        } else {
+          // For other color properties, apply directly
+          applyStyle(control.prop, e.target.value)
+        }
       })
     }
 
@@ -814,8 +834,18 @@ function toggleControlsVisibility (isImage) {
  * Populates color input fields
  */
 function populateColorInput (property, value) {
-  const textInput = document.getElementById(`ote-${property.replace('-color', '')}-text`)
-  const colorInput = document.getElementById(`ote-${property}-picker`)
+  // Handle special case for background-color IDs
+  let textInputId, colorInputId
+  if (property === 'background-color') {
+    textInputId = 'ote-bg-color-text'
+    colorInputId = 'ote-bg-color-picker'
+  } else {
+    textInputId = `ote-${property.replace('-color', '')}-text`
+    colorInputId = `ote-${property}-picker`
+  }
+
+  const textInput = document.getElementById(textInputId)
+  const colorInput = document.getElementById(colorInputId)
 
   if (textInput) {
     textInput.value = value
@@ -2038,45 +2068,11 @@ function setupGradientEventListeners () {
   const positionSlider = document.getElementById('ote-gradient-position')
   const positionText = document.getElementById('ote-gradient-position-text')
 
-  // Also setup event listeners for main background color picker when gradient controls are added
-  const bgColorPicker = document.getElementById('ote-bg-color-picker')
-  const bgColorText = document.getElementById('ote-bg-color-text')
-
-  if (bgColorPicker) {
-    // Remove existing listeners to avoid duplicates
-    bgColorPicker.removeEventListener('input', bgColorPicker._gradientListener)
-    bgColorPicker._gradientListener = (e) => {
-      const gradientToggle = document.getElementById('ote-bg-gradient-toggle')
-      if (gradientToggle?.checked) {
-        updateGradient()
-      } else {
-        applyStyle('background-color', e.target.value)
-      }
-      if (bgColorText) bgColorText.value = e.target.value
-    }
-    bgColorPicker.addEventListener('input', bgColorPicker._gradientListener)
-  }
-
-  if (bgColorText) {
-    // Remove existing listeners to avoid duplicates
-    bgColorText.removeEventListener('input', bgColorText._gradientListener)
-    bgColorText._gradientListener = (e) => {
-      const gradientToggle = document.getElementById('ote-bg-gradient-toggle')
-      if (gradientToggle?.checked) {
-        updateGradient()
-      } else {
-        applyStyle('background-color', e.target.value)
-      }
-    }
-    bgColorText.addEventListener('input', bgColorText._gradientListener)
-  }
-
   if (gradientToggle) {
     gradientToggle.addEventListener('change', (e) => {
       if (gradientControls) {
         gradientControls.style.display = e.target.checked ? 'block' : 'none'
       }
-      // Always update when toggle changes to apply correct background
       updateGradient()
     })
   }
@@ -2112,19 +2108,23 @@ function setupGradientEventListeners () {
  */
 function updateGradient () {
   const gradientToggle = document.getElementById('ote-bg-gradient-toggle')
-  const color1 = document.getElementById('ote-bg-color-picker')?.value || '#ffffff'
 
   if (!gradientToggle?.checked) {
-    // Apply solid color when gradient is disabled
+    // Gradient is disabled, apply solid background color
+    const color1 = document.getElementById('ote-bg-color-picker')?.value || '#ffffff'
+    applyStyle('background', 'none') // Clear any gradient
     applyStyle('background-color', color1)
     return
   }
 
+  // Gradient is enabled, apply gradient
+  const color1 = document.getElementById('ote-bg-color-picker')?.value || '#ffffff'
   const color2 = document.getElementById('ote-bg-color2-picker')?.value || '#000000'
   const direction = document.getElementById('ote-gradient-direction')?.value || 0
   const position = document.getElementById('ote-gradient-position')?.value || 50
 
   const gradientValue = `linear-gradient(${direction}deg, ${color1} 0%, ${color2} ${position}%, ${color1} 100%)`
+  applyStyle('background-color', 'transparent') // Clear solid color
   applyStyle('background', gradientValue)
 }
 
