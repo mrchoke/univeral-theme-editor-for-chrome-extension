@@ -600,8 +600,7 @@ function handleElementSelection (e) {
   const selectorElement = document.getElementById('ote-current-selector')
   if (selectorElement) selectorElement.textContent = selector
 
-  // Reset and populate toolbox with current element values
-  resetToolboxValues()
+  // Populate toolbox with current element values
   populateToolbox(activeElement)
   showToolbox()
 }
@@ -1843,6 +1842,167 @@ function makeDraggable (element, handle) {
       }
     }, 50)
   }
+}
+
+/**
+ * Populates background input with gradient support
+ * @param {string} backgroundColor Current background color value
+ */
+function populateBackgroundInput (backgroundColor) {
+  populateColorInput('background-color', backgroundColor)
+
+  // Add gradient toggle if not exists
+  const bgGroup = document.querySelector('[for="ote-bg-color"]')?.closest('.ote-control-group')
+  if (bgGroup && !document.getElementById('ote-bg-gradient-toggle')) {
+    const gradientToggle = document.createElement('div')
+    gradientToggle.innerHTML = `
+      <label>
+        <input type="checkbox" id="ote-bg-gradient-toggle"> Enable Gradient
+      </label>
+      <div id="ote-gradient-controls" style="display: none; margin-top: 8px;">
+        <div class="ote-control-row">
+          <label>Color 2:</label>
+          <input type="color" id="ote-bg-color2-picker" value="#ffffff">
+          <input type="text" id="ote-bg-color2-text" placeholder="#ffffff">
+        </div>
+        <div class="ote-control-row">
+          <label>Direction:</label>
+          <input type="range" id="ote-gradient-direction" min="0" max="360" step="1" value="0" class="ote-slider">
+          <span id="ote-gradient-direction-text">0°</span>
+        </div>
+        <div class="ote-control-row">
+          <label>Position:</label>
+          <input type="range" id="ote-gradient-position" min="0" max="100" step="1" value="50" class="ote-slider">
+          <span id="ote-gradient-position-text">50%</span>
+        </div>
+      </div>
+    `
+    bgGroup.appendChild(gradientToggle)
+    setupGradientEventListeners()
+  }
+}
+
+/**
+ * Populates shadow controls
+ * @param {string} boxShadow Current box-shadow value
+ */
+function populateShadowControls (boxShadow) {
+  // Create shadow controls if not exists
+  if (!document.getElementById('ote-shadow-group')) {
+    const shadowGroup = document.createElement('div')
+    shadowGroup.id = 'ote-shadow-group'
+    shadowGroup.className = 'ote-control-group'
+    shadowGroup.innerHTML = `
+      <label for="ote-shadow">
+        Box Shadow
+        <button class="ote-expand-btn" id="ote-shadow-expand" title="Expand shadow controls">🌑</button>
+      </label>
+      <div class="ote-control-row">
+        <label>
+          <input type="checkbox" id="ote-shadow-enabled"> Enable Shadow
+        </label>
+      </div>
+      <div id="ote-shadow-controls" style="display: none;">
+        <div class="ote-control-row">
+          <label>X Offset:</label>
+          <input type="range" id="ote-shadow-x-slider" min="-50" max="50" step="1" value="2" class="ote-slider">
+          <input type="text" id="ote-shadow-x-text" placeholder="2px" style="width: 60px;">
+          <span class="ote-unit">px</span>
+        </div>
+        <div class="ote-control-row">
+          <label>Y Offset:</label>
+          <input type="range" id="ote-shadow-y-slider" min="-50" max="50" step="1" value="2" class="ote-slider">
+          <input type="text" id="ote-shadow-y-text" placeholder="2px" style="width: 60px;">
+          <span class="ote-unit">px</span>
+        </div>
+        <div class="ote-control-row">
+          <label>Blur:</label>
+          <input type="range" id="ote-shadow-blur-slider" min="0" max="50" step="1" value="4" class="ote-slider">
+          <input type="text" id="ote-shadow-blur-text" placeholder="4px" style="width: 60px;">
+          <span class="ote-unit">px</span>
+        </div>
+        <div class="ote-control-row">
+          <label>Color:</label>
+          <input type="color" id="ote-shadow-color-picker" value="#000000">
+          <input type="text" id="ote-shadow-color-text" placeholder="#000000">
+        </div>
+      </div>
+    `
+
+    // Insert after border group
+    const borderGroup = document.querySelector('[for="ote-border"]')?.closest('.ote-control-group')
+    if (borderGroup) {
+      borderGroup.parentNode.insertBefore(shadowGroup, borderGroup.nextSibling)
+    }
+
+    setupShadowEventListeners()
+  }
+
+  // Parse and populate existing shadow values
+  if (boxShadow && boxShadow !== 'none') {
+    const shadowEnabled = document.getElementById('ote-shadow-enabled')
+    if (shadowEnabled) shadowEnabled.checked = true
+
+    // Parse shadow values (simplified)
+    const shadowMatch = boxShadow.match(/([-\d.]+)px\s+([-\d.]+)px\s+([\d.]+)px\s+(.+)/)
+    if (shadowMatch) {
+      const [, x, y, blur, color] = shadowMatch
+      populateValueInput('shadow-x', x + 'px')
+      populateValueInput('shadow-y', y + 'px')
+      populateValueInput('shadow-blur', blur + 'px')
+      populateColorInput('shadow-color', color)
+    }
+  } else {
+    // Set default shadow for visibility
+    const shadowEnabled = document.getElementById('ote-shadow-enabled')
+    if (shadowEnabled) shadowEnabled.checked = false
+  }
+}
+
+/**
+ * Populates dimension controls for images
+ * @param {string} width Current width value
+ * @param {string} height Current height value
+ */
+function populateDimensionControls (width, height) {
+  // Create dimension controls if not exists
+  if (!document.getElementById('ote-dimension-group')) {
+    const dimensionGroup = document.createElement('div')
+    dimensionGroup.id = 'ote-dimension-group'
+    dimensionGroup.className = 'ote-control-group'
+    dimensionGroup.innerHTML = `
+      <label for="ote-dimensions">Dimensions</label>
+      <div class="ote-control-row">
+        <label>Width:</label>
+        <input type="range" id="ote-width-slider" min="50" max="1000" step="10" class="ote-slider">
+        <input type="text" id="ote-width-text" placeholder="auto" style="width: 80px;">
+        <span class="ote-unit">px</span>
+      </div>
+      <div class="ote-control-row">
+        <label>Height:</label>
+        <input type="range" id="ote-height-slider" min="50" max="1000" step="10" class="ote-slider">
+        <input type="text" id="ote-height-text" placeholder="auto" style="width: 80px;">
+        <span class="ote-unit">px</span>
+      </div>
+      <div class="ote-control-row">
+        <label>
+          <input type="checkbox" id="ote-maintain-aspect-ratio" checked> Maintain Aspect Ratio
+        </label>
+      </div>
+    `
+
+    // Insert after font size group
+    const fontGroup = document.querySelector('[for="ote-font-size"]')?.closest('.ote-control-group')
+    if (fontGroup) {
+      fontGroup.parentNode.insertBefore(dimensionGroup, fontGroup.nextSibling)
+    }
+
+    setupDimensionEventListeners()
+  }
+
+  // Populate current values
+  populateValueInput('width', width)
+  populateValueInput('height', height)
 }
 
 /**
