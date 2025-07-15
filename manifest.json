@@ -1,11 +1,10 @@
 {
   "manifest_version": 3,
   "name": "Universal Dynamic Theme Editor",
-  "version": "1.0",
+  "version": "1.0.1",
   "description": "Tools for real-time CSS customization and exporting the results for practical use.",
   "author": "mrchoke@gmail.com",
   "permissions": [
-    "storage",
     "activeTab",
     "contextMenus"
   ],
