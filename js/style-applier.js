@@ -24,6 +24,23 @@ function applyStyle (property, value) {
   }
   currentHistory[selector][property] = value
 
+  // If user sets height but the element has a restrictive max-height, override it
+  // so the height change takes effect. We store this change in state/history so
+  // it can be undone or reset like other changes.
+  if (property === 'height') {
+    try {
+      const computed = getComputedStyle(activeElement)
+      const maxH = computed.getPropertyValue('max-height')
+      if (maxH && maxH !== 'none' && maxH !== '0px') {
+        cssRules[selector]['max-height'] = 'none'
+        currentHistory[selector]['max-height'] = 'none'
+        debugLog(`🔧 Overriding max-height (${maxH}) with none for selector ${selector}`)
+      }
+    } catch (e) {
+      debugWarn('Could not read computed style to adjust max-height:', e)
+    }
+  }
+
   // Apply styles to ALL elements with this selector (realtime)
   applyAllRules()
 

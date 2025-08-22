@@ -17,7 +17,8 @@ function handleElementSelection (e) {
     initializeFullExtension()
   }
 
-  const target = e.target
+  // Resolve the most specific element under the cursor, including inside Shadow DOM
+  const target = getEffectiveEventTarget(e)
 
   // Don't select the toolbox, toggle button, options panel, or their children
   if (target.closest('#universal-theme-editor-toolbox') ||
@@ -58,6 +59,32 @@ function handleElementSelection (e) {
 }
 
 /**
+ * Safely extracts the deepest clicked element, handling Shadow DOM and text nodes.
+ * @param {MouseEvent} e
+ * @returns {HTMLElement}
+ */
+function getEffectiveEventTarget (e) {
+  let t = e.target
+  if (typeof e.composedPath === 'function') {
+    const path = e.composedPath()
+    // Find the first real Element in the path (skip Window/Document/Text)
+    for (const node of path) {
+      if (node && node.nodeType === 1) { // ELEMENT_NODE
+        t = node
+        break
+      }
+    }
+  }
+
+  // Normalize Text node -> parent element
+  if (t && t.nodeType !== 1 && t.parentElement) {
+    t = t.parentElement
+  }
+
+  return /** @type {HTMLElement} */ (t)
+}
+
+/**
  * Builds element hierarchy for multi-level selection
  * @param {HTMLElement} element The selected element
  */
@@ -65,16 +92,39 @@ function buildElementHierarchy (element) {
   elementHierarchy = []
   let current = element
 
-  while (current && current !== document.body) {
+  const isExtensionNode = (el) => !!(el && (
+    el.closest('#universal-theme-editor-toolbox') ||
+    el.closest('#universal-theme-toggle-btn') ||
+    el.closest('#universal-theme-options-panel') ||
+    el.closest('#ote-about-dialog') ||
+    el.closest('#ote-instruction')
+  ))
+
+  while (current && current !== document.body && current !== document.documentElement && !isExtensionNode(current)) {
+    const filteredClasses = current.classList
+      ? Array.from(current.classList).filter(c => !c.startsWith('universal-') && c !== 'hover' && c !== 'focus')
+      : []
+
     elementHierarchy.unshift({
       element: current,
       selector: generateSelector(current),
       tagName: current.tagName.toLowerCase(),
-      classes: Array.from(current.classList).join(' '),
+      classes: filteredClasses.join(' '),
       id: current.id || '',
-      displayName: `${current.tagName.toLowerCase()}${current.id ? '#' + current.id : ''}${current.classList.length ? '.' + Array.from(current.classList).join('.') : ''}`
+      displayName: `${current.tagName.toLowerCase()}${current.id ? '#' + current.id : ''}${filteredClasses.length ? '.' + filteredClasses.join('.') : ''}`
     })
-    current = current.parentElement
+
+    // Step up the tree: prefer DOM parent; if absent (ShadowRoot), hop to host
+    if (current.parentElement) {
+      current = current.parentElement
+    } else {
+      const root = current.getRootNode && current.getRootNode()
+      if (root && root.host) {
+        current = root.host
+      } else {
+        break
+      }
+    }
   }
 
   // Update hierarchy selector
