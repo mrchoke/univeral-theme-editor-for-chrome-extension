@@ -3,7 +3,7 @@
  * @param {HTMLElement} el The selected element.
  */
 function populateToolbox (el) {
-  debugLog('📝 Populating toolbox for new element...')
+  debugLog('📝 Populating toolbox for new element')
 
   // Clear all input fields first to avoid showing old values
   clearAllInputs()
@@ -17,10 +17,27 @@ function populateToolbox (el) {
   const saved = (typeof cssRules !== 'undefined' && selector && cssRules[selector]) ? cssRules[selector] : {}
   const history = (typeof currentHistory !== 'undefined' && selector && currentHistory[selector]) ? currentHistory[selector] : {}
 
-  const pick = (prop) => {
-    // prefer saved custom rule, then session history, then computed style
-    if (saved && typeof saved[prop] !== 'undefined') return saved[prop]
-    if (history && typeof history[prop] !== 'undefined') return history[prop]
+  // Normalize property keys (accept camelCase like borderColor as well as kebab-case)
+  const normalizeProps = (obj) => {
+    if (!obj) return {}
+    const out = {}
+    for (const k in obj) {
+      if (!Object.prototype.hasOwnProperty.call(obj, k)) continue
+      const kebab = k.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()
+      out[kebab] = obj[k]
+    }
+    return out
+  }
+
+  const savedNorm = normalizeProps(saved)
+  const historyNorm = normalizeProps(history)
+
+  const pick = (prop, fallbackProp) => {
+    // prefer saved custom rule (normalized), then session history, then computed style
+    if (savedNorm && typeof savedNorm[prop] !== 'undefined') return savedNorm[prop]
+    if (historyNorm && typeof historyNorm[prop] !== 'undefined') return historyNorm[prop]
+    if (fallbackProp && savedNorm && typeof savedNorm[fallbackProp] !== 'undefined') return savedNorm[fallbackProp]
+    if (fallbackProp && historyNorm && typeof historyNorm[fallbackProp] !== 'undefined') return historyNorm[fallbackProp]
     return computedStyle.getPropertyValue(prop)
   }
 
@@ -134,7 +151,7 @@ function populateColorInput (property, value) {
   }
 
   if (colorInput && value) {
-    const hexColor = safeColorToHex(value, '#000000')
+    const hexColor = getHexColor(value, '#000000')
     colorInput.value = hexColor
     debugLog(`🎨 Set ${property} color picker to:`, hexColor)
   } else if (colorInput) {
@@ -197,12 +214,75 @@ function populateBackgroundInput (backgroundColor) {
 /**
  * Populates border control fields
  */
-function populateBorderControls (el, computedStyle) {
-  // Main border controls
-  const borderWidth = computedStyle.getPropertyValue('border-width') || '0px'
-  const borderStyle = computedStyle.getPropertyValue('border-style') || 'solid'
-  const borderColor = computedStyle.getPropertyValue('border-color') || '#000000'
-  const borderRadius = computedStyle.getPropertyValue('border-radius') || '0px'
+function extractColorFromBorderShorthand (shorthand) {
+  debugLog('  extractColorFromBorderShorthand input:', shorthand)
+
+  if (!shorthand || typeof shorthand !== 'string') {
+    debugLog('  extractColorFromBorderShorthand: invalid input')
+    return null
+  }
+
+  // Match rgba(...) or rgb(...), hex (#fff or #ffffff), or named color at the end
+  const m = shorthand.match(/(rgba?\([^\)]+\)|#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|[a-zA-Z]+)/)
+  const result = m ? m[0] : null
+  debugLog('  extractColorFromBorderShorthand result:', result)
+  return result
+} function populateBorderControls (el, computedStyle) {
+  // Main border controls - prefer saved/custom values then history then computed
+  const selector = (typeof generateSelector === 'function') ? generateSelector(el) : null
+  const saved = (typeof cssRules !== 'undefined' && selector && cssRules[selector]) ? cssRules[selector] : {}
+  const history = (typeof currentHistory !== 'undefined' && selector && currentHistory[selector]) ? currentHistory[selector] : {}
+
+  // normalize saved/history keys to kebab-case for consistency
+  const normalizeProps = (obj) => {
+    if (!obj) return {}
+    const out = {}
+    for (const k in obj) {
+      if (!Object.prototype.hasOwnProperty.call(obj, k)) continue
+      const kebab = k.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()
+      out[kebab] = obj[k]
+    }
+    return out
+  }
+
+  const savedNorm = normalizeProps(saved)
+  const historyNorm = normalizeProps(history)
+
+  const pick = (prop, fallbackProp) => {
+    if (savedNorm && typeof savedNorm[prop] !== 'undefined') return savedNorm[prop]
+    if (historyNorm && typeof historyNorm[prop] !== 'undefined') return historyNorm[prop]
+    if (fallbackProp && savedNorm && typeof savedNorm[fallbackProp] !== 'undefined') return savedNorm[fallbackProp]
+    if (fallbackProp && historyNorm && typeof historyNorm[fallbackProp] !== 'undefined') return historyNorm[fallbackProp]
+    return computedStyle.getPropertyValue(prop)
+  }
+
+  const borderWidth = pick('border-width') || '0px'
+  const borderStyle = pick('border-style') || 'solid'
+  const borderRadius = pick('border-radius') || '0px'
+
+  // Debug logging for border color
+  debugLog('Debug border color resolution:')
+  debugLog('  savedNorm:', savedNorm)
+  debugLog('  historyNorm:', historyNorm)
+
+  // Try different border color property variations
+  let rawColorValue = pick('border-color')
+  debugLog('  pick(border-color):', rawColorValue)
+
+  if (!rawColorValue || rawColorValue === 'initial' || rawColorValue === 'inherit') {
+    // Try border shorthand
+    rawColorValue = pick('border')
+    debugLog('  pick(border):', rawColorValue)
+  }
+
+  let finalColor = extractColorFromBorderShorthand(rawColorValue)
+  debugLog('  extractColorFromBorderShorthand result:', finalColor)
+
+  if (!finalColor || finalColor === 'initial' || finalColor === 'inherit') {
+    // Fallback to computed color only as last resort
+    finalColor = computedStyle.getPropertyValue('border-color')
+    debugLog('  fallback to computed border-color:', finalColor)
+  } finalColor = finalColor || '#000000' // Final fallback to black
 
   // Border width
   const borderWidthText = document.getElementById('ote-border-width-text')
@@ -220,9 +300,12 @@ function populateBorderControls (el, computedStyle) {
   // Border color
   const borderColorPicker = document.getElementById('ote-border-color-picker')
   if (borderColorPicker) {
-    const colorValue = borderColor.split(' ')[0] || '#000000'
-    const hexColor = safeColorToHex(colorValue, '#000000')
+    debugLog('  Setting border color picker:')
+    debugLog('    finalColor:', finalColor)
+    const hexColor = getHexColor(finalColor, '#000000')
+    debugLog('    hexColor (after conversion):', hexColor)
     borderColorPicker.value = hexColor
+    debugLog('    color picker value set to:', borderColorPicker.value)
   }
 
   // Border radius
@@ -231,22 +314,63 @@ function populateBorderControls (el, computedStyle) {
   if (borderRadiusText) borderRadiusText.value = borderRadius.split(' ')[0] || '0px'
   if (borderRadiusSlider) borderRadiusSlider.value = extractNumericValue(borderRadius)
 
-  // Individual border sides and corners
-  populateIndividualBorderControls(computedStyle)
+  // Individual border sides and corners (pass saved/history for side-specific fallbacks)
+  populateIndividualBorderControls(computedStyle, saved, history)
 }
 
 /**
  * Populates individual border side and corner controls
  */
-function populateIndividualBorderControls (computedStyle) {
+function populateIndividualBorderControls (computedStyle, saved = {}, history = {}) {
   const sides = ['top', 'right', 'bottom', 'left']
   const corners = ['top-left', 'top-right', 'bottom-left', 'bottom-right']
 
+  // Normalize saved/history keys to kebab-case so we can find values like 'border-top'
+  const normalize = (obj) => {
+    const out = {}
+    for (const k in obj) {
+      if (!Object.prototype.hasOwnProperty.call(obj, k)) continue
+      const kebab = k.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()
+      out[kebab] = obj[k]
+    }
+    return out
+  }
+
+  const savedNorm = normalize(saved || {})
+  const historyNorm = normalize(history || {})
+
   // Populate individual sides
   sides.forEach(side => {
-    const width = computedStyle.getPropertyValue(`border-${side}-width`) || '0px'
-    const style = computedStyle.getPropertyValue(`border-${side}-style`) || 'solid'
-    const color = computedStyle.getPropertyValue(`border-${side}-color`) || '#000000'
+    // prefer side-specific saved value, then generic border-* saved, then history, then computed
+    const widthProp = `border-${side}-width`
+    const styleProp = `border-${side}-style`
+    const colorProp = `border-${side}-color`
+
+    const width = (savedNorm && typeof savedNorm[widthProp] !== 'undefined') ? savedNorm[widthProp]
+      : (historyNorm && typeof historyNorm[widthProp] !== 'undefined') ? historyNorm[widthProp]
+        : computedStyle.getPropertyValue(widthProp) || '0px'
+
+    const style = (savedNorm && typeof savedNorm[styleProp] !== 'undefined') ? savedNorm[styleProp]
+      : (historyNorm && typeof historyNorm[styleProp] !== 'undefined') ? historyNorm[styleProp]
+        : computedStyle.getPropertyValue(styleProp) || 'solid'
+
+    // Resolve color with clear priority
+    const shorthandProp = `border-${side}`
+    let rawValue = savedNorm[colorProp] || historyNorm[colorProp] ||
+      savedNorm[shorthandProp] || historyNorm[shorthandProp] ||
+      savedNorm['border-color'] || historyNorm['border-color'] ||
+      savedNorm['border'] || historyNorm['border']
+
+    let finalColor = null
+    if (rawValue) {
+      finalColor = extractColorFromBorderShorthand(rawValue)
+    }
+
+    if (!finalColor) {
+      finalColor = computedStyle.getPropertyValue(colorProp)
+    }
+
+    finalColor = finalColor || '#000000'
 
     const widthText = document.getElementById(`ote-border-${side}-width-text`)
     const widthSlider = document.getElementById(`ote-border-${side}-width-slider`)
@@ -257,7 +381,9 @@ function populateIndividualBorderControls (computedStyle) {
     if (widthSlider) widthSlider.value = extractNumericValue(width)
     if (styleSelect) styleSelect.value = style
     if (colorPicker) {
-      const hexColor = safeColorToHex(color, '#000000')
+      debugLog('🔍 individual side color raw:', finalColor, 'for side:', side)
+      const hexColor = getHexColor(finalColor, '#000000')
+      debugLog('🔍 individual side color hex:', hexColor, 'for side:', side)
       colorPicker.value = hexColor
     }
   })
@@ -333,8 +459,17 @@ function safeColorToHex (colorValue, fallback = '#000000') {
 
   try {
     // Already valid hex color
-    if (colorValue.startsWith('#') && /^#[0-9A-F]{6}$/i.test(colorValue)) {
-      return colorValue
+    if (colorValue.startsWith('#')) {
+      // 6-digit hex
+      if (/^#[0-9A-F]{6}$/i.test(colorValue)) {
+        return colorValue.toLowerCase()
+      }
+      // 3-digit hex - expand to 6-digit
+      if (/^#[0-9A-F]{3}$/i.test(colorValue)) {
+        const short = colorValue.slice(1)
+        const full = '#' + short.split('').map(c => c + c).join('')
+        return full.toLowerCase()
+      }
     }
 
     // RGB/RGBA color
@@ -367,6 +502,43 @@ function safeColorToHex (colorValue, fallback = '#000000') {
     return fallback
   } catch (e) {
     debugWarn('Error converting color:', colorValue, e)
+    return fallback
+  }
+}
+
+/**
+ * Convert an rgb()/rgba() string to hex (#rrggbb). If rgba has alpha, alpha is ignored.
+ * Accepts formats like 'rgb(255, 0, 0)' or 'rgba(255,0,0,0.5)'.
+ */
+function rgbStringToHex (rgbString) {
+  if (!rgbString || typeof rgbString !== 'string') return null
+  const m = rgbString.match(/rgba?\s*\(([^)]+)\)/)
+  if (!m) return null
+  const parts = m[1].split(',').map(p => p.trim())
+  if (parts.length < 3) return null
+  const r = Math.max(0, Math.min(255, parseInt(parts[0], 10) || 0))
+  const g = Math.max(0, Math.min(255, parseInt(parts[1], 10) || 0))
+  const b = Math.max(0, Math.min(255, parseInt(parts[2], 10) || 0))
+  const toHex = (n) => n.toString(16).padStart(2, '0')
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toLowerCase()
+}
+
+/**
+ * Normalize any color-like value to a hex string acceptable by <input type="color">.
+ * Handles: hex (#fff, #ffffff), rgb(), rgba(), named colors.
+ */
+function getHexColor (value, fallback = '#000000') {
+  if (!value) return fallback
+  try {
+    const str = String(value).trim()
+    if (str.startsWith('rgb')) {
+      const h = rgbStringToHex(str)
+      if (h) return h
+    }
+    // Delegate to existing safeColorToHex for other formats (hex, named, etc.)
+    return safeColorToHex(str, fallback)
+  } catch (e) {
+    debugWarn('getHexColor error for', value, e)
     return fallback
   }
 }
