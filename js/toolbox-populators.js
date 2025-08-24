@@ -11,20 +11,33 @@ function populateToolbox (el) {
   const computedStyle = getComputedStyle(el)
   const isImage = isImageElement(el)
 
-  // Get actual computed values
-  const color = computedStyle.getPropertyValue('color')
-  const backgroundColor = computedStyle.getPropertyValue('background-color')
-  const fontSize = computedStyle.getPropertyValue('font-size')
-  const padding = computedStyle.getPropertyValue('padding')
-  const margin = computedStyle.getPropertyValue('margin')
-  const border = computedStyle.getPropertyValue('border')
-  const borderRadius = computedStyle.getPropertyValue('border-radius')
-  const boxShadow = computedStyle.getPropertyValue('box-shadow')
-  const width = computedStyle.getPropertyValue('width')
-  const height = computedStyle.getPropertyValue('height')
+  // Prefer previously saved/custom values (cssRules/currentHistory) when present so
+  // the UI reflects what the user last applied. Fallback to computed styles.
+  const selector = (typeof generateSelector === 'function') ? generateSelector(el) : null
+  const saved = (typeof cssRules !== 'undefined' && selector && cssRules[selector]) ? cssRules[selector] : {}
+  const history = (typeof currentHistory !== 'undefined' && selector && currentHistory[selector]) ? currentHistory[selector] : {}
 
-  debugLog('📝 Current element values:', {
-    color, backgroundColor, fontSize, padding, margin, border, borderRadius, boxShadow, width, height, isImage
+  const pick = (prop) => {
+    // prefer saved custom rule, then session history, then computed style
+    if (saved && typeof saved[prop] !== 'undefined') return saved[prop]
+    if (history && typeof history[prop] !== 'undefined') return history[prop]
+    return computedStyle.getPropertyValue(prop)
+  }
+
+  // Get values (prefer saved/custom)
+  const color = pick('color')
+  const backgroundColor = pick('background-color')
+  const fontSize = pick('font-size')
+  const padding = pick('padding')
+  const margin = pick('margin')
+  const border = pick('border')
+  const borderRadius = pick('border-radius')
+  const boxShadow = pick('box-shadow')
+  const width = pick('width')
+  const height = pick('height')
+
+  debugLog('📝 Current element values (saved|history|computed):', {
+    selector, color, backgroundColor, fontSize, padding, margin, border, borderRadius, boxShadow, width, height, isImage
   })
 
   // Show/hide controls based on element type
