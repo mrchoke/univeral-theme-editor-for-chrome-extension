@@ -80,10 +80,20 @@ function updateInputFields (property, value) {
  */
 function exportCss () {
   let cssString = '/* --- Custom Universal Theme Styles --- */\n\n'
+  // Respect the global forceImportant toggle if available.
+  // If the global isn't initialized (e.g., options panel opened without toolbox), read persisted value from localStorage.
+  let useImportant
+  if (typeof forceImportant !== 'undefined') {
+    useImportant = forceImportant
+  } else {
+    const saved = localStorage.getItem('ote-force-important')
+    useImportant = saved === null ? true : (saved === 'true')
+  }
+
   for (const selector in cssRules) {
     cssString += `${selector} {\n`
     for (const property in cssRules[selector]) {
-      cssString += `  ${property}: ${cssRules[selector][property]};\n`
+      cssString += `  ${property}: ${cssRules[selector][property]}${useImportant ? ' !important' : ''};\n`
     }
     cssString += '}\n\n'
   }

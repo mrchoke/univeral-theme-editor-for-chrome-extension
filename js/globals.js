@@ -5,6 +5,7 @@ let originalValues = {} // Stores original values for undo
 let currentHistory = {} // Stores current session changes for reset
 let debugMode = false // Debug mode toggle - default OFF
 let elementHierarchy = [] // Store element hierarchy for selection
+let forceImportant = true // Global toggle to append !important to applied styles
 const HIGHLIGHT_CLASS = 'universal-editor-highlight'
 
 // Debug function
@@ -47,6 +48,12 @@ function loadState () {
   try {
     const savedRules = localStorage.getItem('universal-theme-editor-rules')
     const savedOriginal = localStorage.getItem('universal-theme-editor-original')
+    const savedForce = localStorage.getItem('ote-force-important')
+
+    // If user has previously set the force-important option, restore it.
+    if (savedForce !== null) {
+      forceImportant = savedForce === 'true'
+    }
 
     if (savedRules) {
       cssRules = JSON.parse(savedRules)
@@ -76,7 +83,7 @@ function applyAllRules () {
   for (const selector in cssRules) {
     cssText += `${selector} {\n`
     for (const property in cssRules[selector]) {
-      cssText += `  ${property}: ${cssRules[selector][property]} !important;\n`
+      cssText += `  ${property}: ${cssRules[selector][property]}${forceImportant ? ' !important' : ''};\n`
     }
     cssText += '}\n'
   }

@@ -55,6 +55,17 @@ function handleElementSelection (e) {
 
   // Populate toolbox with current element values
   populateToolbox(activeElement)
+
+  // Sync force-important toggle from persisted storage to global and UI
+  try {
+    const savedForce = localStorage.getItem('ote-force-important')
+    const savedVal = savedForce === null ? true : (savedForce === 'true')
+    if (typeof forceImportant !== 'undefined') forceImportant = savedVal
+    const forceToggle = document.getElementById('ote-force-important-toggle')
+    if (forceToggle) forceToggle.checked = savedVal
+  } catch (e) {
+    debugWarn('Could not sync force-important toggle:', e)
+  }
   showToolbox()
 }
 

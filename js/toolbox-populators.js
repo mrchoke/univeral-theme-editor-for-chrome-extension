@@ -57,6 +57,10 @@ function clearAllInputs () {
   const inputs = document.querySelectorAll('#universal-theme-editor-toolbox input, #universal-theme-editor-toolbox select')
   inputs.forEach(input => {
     if (input.type === 'checkbox') {
+      // Preserve persistent toggles (don't clear debug or force-important toggles)
+      if (input.id === 'ote-debug-toggle' || input.id === 'ote-force-important-toggle') {
+        return
+      }
       input.checked = false
     } else if (input.type === 'color') {
       // Color inputs require valid hex format, use default color

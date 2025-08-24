@@ -59,6 +59,33 @@ function setupEventListeners () {
     })
   }
 
+  // Force !important toggle
+  const forceImportantToggle = document.getElementById('ote-force-important-toggle')
+  if (forceImportantToggle) {
+    // Load saved state (default true for backward compatibility)
+    const saved = localStorage.getItem('ote-force-important')
+    forceImportantToggle.checked = saved === null ? true : (saved === 'true')
+    // Set global
+    try {
+      // `forceImportant` is declared in globals.js
+      forceImportant = forceImportantToggle.checked
+    } catch (e) {
+      debugWarn('Could not set forceImportant global:', e)
+    }
+
+    forceImportantToggle.addEventListener('change', (e) => {
+      const val = e.target.checked
+      try {
+        forceImportant = val
+      } catch (err) {
+        debugWarn('Could not update forceImportant global:', err)
+      }
+      localStorage.setItem('ote-force-important', val.toString())
+      // Reapply rules to reflect the new setting
+      applyAllRules()
+    })
+  }
+
   // Element hierarchy selector
   const hierarchySelect = document.getElementById('ote-hierarchy-select')
   if (hierarchySelect) {

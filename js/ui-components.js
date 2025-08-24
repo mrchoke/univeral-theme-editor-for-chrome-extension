@@ -144,6 +144,10 @@ function makeDraggable (element, handle = null) {
  * Returns the HTML template for the toolbox
  */
 function getToolboxHTML () {
+  // Read persisted force-important setting so the checkbox reflects current state when toolbox is created
+  const savedForce = localStorage.getItem('ote-force-important')
+  const forceChecked = (savedForce === null) ? 'checked' : (savedForce === 'true' ? 'checked' : '')
+
   return `
         <div class="ote-header">
             <h3>Theme Editor</h3>
@@ -166,6 +170,14 @@ function getToolboxHTML () {
                 </div>
             </div>
             
+            <div class="ote-control-group" style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                <label style="font-size: 13px;">Force with !important</label>
+                <label style="display: inline-flex; align-items: center; gap: 8px; font-size: 12px;">
+                    <input type="checkbox" id="ote-force-important-toggle" style="margin: 0;" ${forceChecked}>
+                    <span style="font-weight: normal;">Enable</span>
+                </label>
+            </div>
+
             <div class="ote-control-group" id="ote-element-hierarchy" style="display: none;">
                 <label>Element Hierarchy</label>
                 <select id="ote-hierarchy-select" style="width: 100%; margin-top: 5px;">
