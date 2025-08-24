@@ -112,20 +112,6 @@ function generateSelector (el) {
       break
     }
 
-    // Prefer to stop at a parent with an ID for stability
-    const parent = currentEl.parentElement || (currentEl.getRootNode && currentEl.getRootNode().host) || null
-    if (parent && parent.id) {
-      parts.unshift(`#${parent.id}`)
-      // Also include the current element tag/class under this ID before breaking
-      let part = currentEl.tagName ? currentEl.tagName.toLowerCase() : ''
-      if (part) {
-        const classes = currentEl.classList ? Array.from(currentEl.classList).filter(c => !c.startsWith('universal-') && c !== 'hover' && c !== 'focus') : []
-        if (classes.length > 0) part += '.' + classes.join('.')
-        parts.push(part)
-      }
-      break
-    }
-
     // Build part for the current element
     let part = currentEl.tagName ? currentEl.tagName.toLowerCase() : ''
     if (part) {
@@ -134,8 +120,15 @@ function generateSelector (el) {
       parts.unshift(part)
     }
 
+    // Check if parent has an ID - if so, add it and stop
+    const parent = currentEl.parentElement || (currentEl.getRootNode && currentEl.getRootNode().host) || null
+    if (parent && parent.id) {
+      parts.unshift(`#${parent.id}`)
+      break
+    }
+
     // Move up the tree (supports Shadow DOM via host)
-    currentEl = currentEl.parentElement || (currentEl.getRootNode && currentEl.getRootNode().host) || null
+    currentEl = parent
     depth++
   }
 

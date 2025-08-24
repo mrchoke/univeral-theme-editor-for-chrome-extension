@@ -43,6 +43,46 @@ debugCheckbox.checked = debugMode
 - อัปเดต `.ote-body` ให้ใช้ `height: calc(100% - 60px)` แทน `max-height`
 - เปลี่ยน `overflow-y: auto` เป็น `overflow: hidden` สำหรับ container หลัก
 
+### 4. **Selector Generation ลำดับ Element สลับกัน**
+**ปัญหา:** การสร้าง CSS selector มีการสลับลำดับ element ทำให้ selector ไม่ตรงกับ DOM hierarchy
+
+**ตัวอย่าง:**
+```html
+<div id="main-content" class="page_index_journal">
+    <div class="homepage-image">
+        <img class="img-responsive" src="...">
+    </div>
+</div>
+```
+
+**ปัญหาเดิม:** สร้าง selector เป็น `#main-content > img.img-responsive > div.homepage-image` (ผิด)  
+**หลังแก้ไข:** สร้าง selector เป็น `#main-content > div.homepage-image > img.img-responsive` (ถูก)
+
+**สาเหตุ:** ใน `generateSelector()` function มีการใช้ `parts.push()` และ `parts.unshift()` ผิดลำดับ
+
+**การแก้ไข:**
+- ปรับปรุงตรรกะใน `generateSelector()` function ใน `js/globals.js`
+- สร้าง selector ตามลำดับ DOM hierarchy ที่ถูกต้อง (parent → child)
+- เก็บ current element ไว้ใน parts ก่อน แล้วค่อยเพิ่ม parent ID
+
+```javascript
+// สร้าง part สำหรับ element ปัจจุบันก่อน
+let part = currentEl.tagName ? currentEl.tagName.toLowerCase() : ''
+if (part) {
+    const classes = currentEl.classList ? Array.from(currentEl.classList)
+        .filter(c => !c.startsWith('universal-') && c !== 'hover' && c !== 'focus') : []
+    if (classes.length > 0) part += '.' + classes.join('.')
+    parts.unshift(part)
+}
+
+// ตรวจสอบ parent ที่มี ID - ถ้ามีให้เพิ่มและหยุด
+const parent = currentEl.parentElement || (currentEl.getRootNode && currentEl.getRootNode().host) || null
+if (parent && parent.id) {
+    parts.unshift(`#${parent.id}`)
+    break
+}
+```
+
 ## การปรับปรุงเพิ่มเติม 🚀
 
 ### **UI/UX Improvements:**
@@ -53,8 +93,22 @@ debugCheckbox.checked = debugMode
 ### **ไฟล์ที่แก้ไข:**
 - ✅ `js/options-panel.js` - แก้ไขการอ่านค่า debug mode
 - ✅ `js/ui-components.js` - ย้ายปุ่ม Undo และเพิ่มการขยายขนาด  
-- ✅ `style.css` - อัปเดต CSS สำหรับการขยายขนาด
-- ✅ `test.html` - เพิ่มการทดสอบฟีเจอร์ใหม่
+- ✅ `js/globals.js` - แก้ไข generateSelector() function ให้สร้าง selector ถูกต้อง
+- ✅ `css/style.css` - อัปเดต CSS สำหรับการขยายขนาด
+- ✅ `test/selector-fix-test.html` - ไฟล์ทดสอบการแก้ไข selector
+- ✅ `test/integration-test.html` - ทดสอบการทำงานร่วมกับ extension
+- ✅ `test/console-test.js` - ทดสอบ selector ผ่าน console
+
+### **Selector Generation:**
+1. เลือก element ใดก็ได้โดยกด Alt+Click
+2. ตรวจสอบ selector ที่แสดงใน toolbox
+3. ลองใช้ selector นี้ใน DevTools: `document.querySelector('selector')`
+4. Element ที่เลือกควรตรงกับ element ที่ selector ค้นหาได้
+
+### **ไฟล์ทดสอบ:**
+- `test/selector-fix-test.html` - ทดสอบ selector generation แบบแยกส่วน
+- `test/integration-test.html` - ทดสอบร่วมกับ extension
+- `test/console-test.js` - run ใน console เพื่อทดสอบ multiple cases
 
 ## วิธีการทดสอบ 🧪
 
@@ -79,6 +133,7 @@ debugCheckbox.checked = debugMode
 ✅ **Debug Mode:** แสดงสถานะที่ถูกต้องเสมอ  
 ✅ **UI Layout:** ปุ่มต่างๆ ไม่ซ้อนกัน จัดเรียงเป็นระเบียบ  
 ✅ **User Experience:** ผู้ใช้สามารถปรับขนาด Toolbox ตามต้องการ  
+✅ **Selector Generation:** สร้าง CSS selector ตามลำดับ DOM hierarchy ที่ถูกต้อง  
 ✅ **Functionality:** ทุกฟีเจอร์ทำงานได้ปกติและเสถียร
 
 การปรับปรุงนี้ทำให้ Universal Theme Editor ใช้งานได้สะดวกและมีประสิทธิภาพมากขึ้น! 🎉
