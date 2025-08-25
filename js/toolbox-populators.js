@@ -240,17 +240,40 @@ function populateBackgroundInput (backgroundColor, backgroundImage, background) 
  * Populates border control fields
  */
 function extractColorFromBorderShorthand (shorthand) {
-  debugLog('  extractColorFromBorderShorthand input:', shorthand)
+  debugLog('🔍 extractColorFromBorderShorthand input:', shorthand)
 
   if (!shorthand || typeof shorthand !== 'string') {
-    debugLog('  extractColorFromBorderShorthand: invalid input')
+    debugLog('🔍 extractColorFromBorderShorthand: invalid input')
     return null
   }
 
-  // Match rgba(...) or rgb(...), hex (#fff or #ffffff), or named color at the end
-  const m = shorthand.match(/(rgba?\([^\)]+\)|#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|[a-zA-Z]+)/)
-  const result = m ? m[0] : null
-  debugLog('  extractColorFromBorderShorthand result:', result)
+  // Enhanced regex to match various color formats
+  // Match hex colors (#fff, #ffffff), rgb/rgba colors, or named colors
+  const colorPatterns = [
+    /#[0-9a-fA-F]{6}/,           // 6-digit hex
+    /#[0-9a-fA-F]{3}/,           // 3-digit hex  
+    /rgba?\([^)]+\)/,            // rgb() or rgba()
+    /\b[a-zA-Z]+\b(?=\s*$|\s*;)/ // named colors at word boundaries
+  ]
+  
+  let result = null
+  for (const pattern of colorPatterns) {
+    const match = shorthand.match(pattern)
+    if (match) {
+      result = match[0]
+      debugLog(`🔍 extractColorFromBorderShorthand matched pattern:`, pattern, 'result:', result)
+      break
+    }
+  }
+  
+  if (!result) {
+    // Fallback to original pattern
+    const m = shorthand.match(/(rgba?\([^\)]+\)|#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|[a-zA-Z]+)/)
+    result = m ? m[0] : null
+    debugLog('🔍 extractColorFromBorderShorthand fallback result:', result)
+  }
+  
+  debugLog('🔍 extractColorFromBorderShorthand final result:', result)
   return result
 } function populateBorderControls (el, computedStyle) {
   // Main border controls - prefer saved/custom values then history then computed
@@ -339,30 +362,18 @@ function extractColorFromBorderShorthand (shorthand) {
   if (borderRadiusText) borderRadiusText.value = borderRadius.split(' ')[0] || '0px'
   if (borderRadiusSlider) borderRadiusSlider.value = extractNumericValue(borderRadius)
 
-  // Individual border sides and corners (pass saved/history for side-specific fallbacks)
-  populateIndividualBorderControls(computedStyle, saved, history)
+  // Individual border sides and corners (pass normalized saved/history for side-specific lookups)
+  populateIndividualBorderControls(computedStyle, savedNorm, historyNorm)
 }
 
 /**
  * Populates individual border side and corner controls
  */
-function populateIndividualBorderControls (computedStyle, saved = {}, history = {}) {
+function populateIndividualBorderControls (computedStyle, savedNorm = {}, historyNorm = {}) {
   const sides = ['top', 'right', 'bottom', 'left']
   const corners = ['top-left', 'top-right', 'bottom-left', 'bottom-right']
 
-  // Normalize saved/history keys to kebab-case so we can find values like 'border-top'
-  const normalize = (obj) => {
-    const out = {}
-    for (const k in obj) {
-      if (!Object.prototype.hasOwnProperty.call(obj, k)) continue
-      const kebab = k.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()
-      out[kebab] = obj[k]
-    }
-    return out
-  }
-
-  const savedNorm = normalize(saved || {})
-  const historyNorm = normalize(history || {})
+  // savedNorm and historyNorm are already normalized, no need to normalize again
 
   // Populate individual sides
   sides.forEach(side => {
@@ -370,6 +381,13 @@ function populateIndividualBorderControls (computedStyle, saved = {}, history = 
     const widthProp = `border-${side}-width`
     const styleProp = `border-${side}-style`
     const colorProp = `border-${side}-color`
+
+    debugLog(`🔍 Processing side: ${side}`)
+    debugLog(`🔍 Available savedNorm for ${side}:`, {
+      [widthProp]: savedNorm[widthProp],
+      [styleProp]: savedNorm[styleProp],
+      [colorProp]: savedNorm[colorProp]
+    })
 
     // Get width with proper defaults
     let width = (savedNorm && typeof savedNorm[widthProp] !== 'undefined') ? savedNorm[widthProp]
@@ -381,6 +399,8 @@ function populateIndividualBorderControls (computedStyle, saved = {}, history = 
       width = '0px'
     }
 
+    debugLog(`🔍 Final width for ${side}:`, width)
+
     // Get style with proper defaults
     let style = (savedNorm && typeof savedNorm[styleProp] !== 'undefined') ? savedNorm[styleProp]
       : (historyNorm && typeof historyNorm[styleProp] !== 'undefined') ? historyNorm[styleProp]
@@ -391,27 +411,44 @@ function populateIndividualBorderControls (computedStyle, saved = {}, history = 
       style = 'solid'
     }
 
-    // Resolve color with clear priority
-    const shorthandProp = `border-${side}`
-    let rawValue = savedNorm[colorProp] || historyNorm[colorProp] ||
-      savedNorm[shorthandProp] || historyNorm[shorthandProp] ||
-      savedNorm['border-color'] || historyNorm['border-color'] ||
-      savedNorm['border'] || historyNorm['border']
+    debugLog(`🔍 Final style for ${side}:`, style)
 
+    // Resolve color with clear priority - handle direct color values vs shorthand
     let finalColor = null
-    if (rawValue) {
-      finalColor = extractColorFromBorderShorthand(rawValue)
+
+    // First try direct color property
+    if (savedNorm[colorProp] || historyNorm[colorProp]) {
+      const directColor = savedNorm[colorProp] || historyNorm[colorProp]
+      // Direct color values don't need extraction, just use as-is
+      finalColor = directColor
+      debugLog(`🔍 Found direct color for ${side}:`, directColor)
     }
 
+    // If no direct color, try shorthand properties
+    if (!finalColor) {
+      const shorthandProp = `border-${side}`
+      let rawValue = savedNorm[shorthandProp] || historyNorm[shorthandProp] ||
+        savedNorm['border-color'] || historyNorm['border-color'] ||
+        savedNorm['border'] || historyNorm['border']
+
+      if (rawValue) {
+        finalColor = extractColorFromBorderShorthand(rawValue)
+        debugLog(`🔍 Extracted color from shorthand for ${side}:`, finalColor, 'from:', rawValue)
+      }
+    }
+
+    // Fallback to computed style
     if (!finalColor) {
       const computedColor = computedStyle.getPropertyValue(colorProp)
       // Normalize computed color values
       if (computedColor && computedColor !== 'initial' && computedColor !== 'inherit' && computedColor !== 'currentcolor') {
         finalColor = computedColor
+        debugLog(`🔍 Using computed color for ${side}:`, computedColor)
       }
     }
 
     finalColor = finalColor || '#000000'
+    debugLog(`🔍 Final color for ${side}:`, finalColor)
 
     const widthText = document.getElementById(`ote-border-${side}-width-text`)
     const widthSlider = document.getElementById(`ote-border-${side}-width-slider`)
