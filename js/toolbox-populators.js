@@ -95,8 +95,12 @@ function clearAllInputs () {
       }
       input.checked = false
     } else if (input.type === 'color') {
-      // Color inputs require valid hex format, use default color
-      input.value = '#000000'
+      // Color inputs require valid hex format, use appropriate defaults
+      if (input.id === 'ote-bg-color-picker' || input.id === 'ote-bg-color2-picker') {
+        input.value = '#ffffff' // White for background colors
+      } else {
+        input.value = '#000000' // Black for other colors
+      }
     } else if (input.type === 'range') {
       // Range inputs should be set to their default/minimum value
       input.value = input.min || '0'
@@ -153,12 +157,13 @@ function populateColorInput (property, value) {
   }
 
   if (colorInput && value) {
-    const hexColor = getHexColor(value, '#000000')
+    const hexColor = getHexColor(value, '#ffffff')
     colorInput.value = hexColor
     debugLog(`🎨 Set ${property} color picker to:`, hexColor)
   } else if (colorInput) {
-    // If no value provided, set safe default
-    colorInput.value = '#000000'
+    // If no value provided, set safe default - white for background, black for others
+    const defaultColor = property === 'background-color' ? '#ffffff' : '#000000'
+    colorInput.value = defaultColor
   }
 }
 
@@ -698,6 +703,9 @@ function populateGradientInputs (angle, color1, color2, position) {
     const hexColor1 = getHexColor(color1, '#ffffff')
     color1Picker.value = hexColor1
     debugLog('🎨 Set color1 picker to:', hexColor1, 'from gradient color1:', color1)
+  } else if (color1Picker) {
+    // Default to white for background color
+    color1Picker.value = '#ffffff'
   }
 
   if (color1Text && color1 && color1 !== '#ffffff') {
@@ -710,9 +718,12 @@ function populateGradientInputs (angle, color1, color2, position) {
   const color2Text = document.getElementById('ote-bg-color2-text')
 
   if (color2Picker && color2 && color2 !== '#000000') {
-    const hexColor2 = getHexColor(color2, '#000000')
+    const hexColor2 = getHexColor(color2, '#ffffff')
     color2Picker.value = hexColor2
     debugLog('🎨 Set color2 picker to:', hexColor2, 'from gradient color2:', color2)
+  } else if (color2Picker) {
+    // Default to white for second background color too
+    color2Picker.value = '#ffffff'
   }
 
   if (color2Text && color2 && color2 !== '#000000') {
@@ -751,8 +762,8 @@ function resetGradientControls () {
   if (angleText) angleText.value = '90'
   if (positionSlider) positionSlider.value = '50'
   if (positionText) positionText.value = '50'
-  if (color2Picker) color2Picker.value = '#000000'
-  if (color2Text) color2Text.value = '#000000'
+  if (color2Picker) color2Picker.value = '#ffffff' // White for background
+  if (color2Text) color2Text.value = '#ffffff'
 
   debugLog('🎨 Reset gradient controls to default')
 }
