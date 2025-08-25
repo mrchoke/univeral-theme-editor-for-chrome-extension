@@ -255,7 +255,7 @@ function extractColorFromBorderShorthand (shorthand) {
     /rgba?\([^)]+\)/,            // rgb() or rgba()
     /\b[a-zA-Z]+\b(?=\s*$|\s*;)/ // named colors at word boundaries
   ]
-  
+
   let result = null
   for (const pattern of colorPatterns) {
     const match = shorthand.match(pattern)
@@ -265,14 +265,14 @@ function extractColorFromBorderShorthand (shorthand) {
       break
     }
   }
-  
+
   if (!result) {
     // Fallback to original pattern
     const m = shorthand.match(/(rgba?\([^\)]+\)|#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|[a-zA-Z]+)/)
     result = m ? m[0] : null
     debugLog('🔍 extractColorFromBorderShorthand fallback result:', result)
   }
-  
+
   debugLog('🔍 extractColorFromBorderShorthand final result:', result)
   return result
 } function populateBorderControls (el, computedStyle) {
