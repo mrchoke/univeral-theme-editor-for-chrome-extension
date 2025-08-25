@@ -44,6 +44,8 @@ function populateToolbox (el) {
   // Get values (prefer saved/custom)
   const color = pick('color')
   const backgroundColor = pick('background-color')
+  const backgroundImage = pick('background-image')
+  const background = pick('background')
   const fontSize = pick('font-size')
   const padding = pick('padding')
   const margin = pick('margin')
@@ -54,7 +56,7 @@ function populateToolbox (el) {
   const height = pick('height')
 
   debugLog('📝 Current element values (saved|history|computed):', {
-    selector, color, backgroundColor, fontSize, padding, margin, border, borderRadius, boxShadow, width, height, isImage
+    selector, color, backgroundColor, backgroundImage, background, fontSize, padding, margin, border, borderRadius, boxShadow, width, height, isImage
   })
 
   // Show/hide controls based on element type
@@ -62,7 +64,7 @@ function populateToolbox (el) {
 
   // Populate basic controls
   populateColorInput('color', color)
-  populateBackgroundInput(backgroundColor)
+  populateBackgroundInput(backgroundColor, backgroundImage, background)
   populateValueInput('font-size', fontSize)
   populateValueInput('padding', padding)
   populateValueInput('margin', margin)
@@ -205,10 +207,28 @@ function populateHeightInput (height) {
 }
 
 /**
- * Populates background input with special handling for background-color
+ * Populates background input with special handling for gradient
+ * @param {string} backgroundColor Current background-color value
+ * @param {string} backgroundImage Current background-image value  
+ * @param {string} background Current background shorthand value
  */
-function populateBackgroundInput (backgroundColor) {
-  populateColorInput('background-color', backgroundColor)
+function populateBackgroundInput (backgroundColor, backgroundImage, background) {
+  // Check for gradient in background-image, background, or saved values
+  const gradientValue = backgroundImage || background
+  const hasGradient = gradientValue && gradientValue.includes('linear-gradient')
+
+  debugLog('🎨 Background values:', { backgroundColor, backgroundImage, background, hasGradient, gradientValue })
+
+  if (hasGradient) {
+    // For gradients, reset controls first and parse from actual gradient
+    // IMPORTANT: Don't use backgroundColor when we have a gradient
+    resetGradientControls()
+    populateGradientControls(gradientValue)
+  } else {
+    // For solid colors, reset gradient and populate background color
+    resetGradientControls()
+    populateColorInput('background-color', backgroundColor)
+  }
 }
 
 /**
@@ -541,4 +561,198 @@ function getHexColor (value, fallback = '#000000') {
     debugWarn('getHexColor error for', value, e)
     return fallback
   }
+}
+
+/**
+ * Populates gradient controls with values from a linear-gradient string
+ * @param {string} gradientValue The linear-gradient CSS value
+ */
+function populateGradientControls (gradientValue) {
+  debugLog('🎨 Parsing gradient:', gradientValue)
+
+  // Parse gradient: linear-gradient(angle, color1 position1, color2 position2)
+  // Use more sophisticated regex that handles nested parentheses in RGB colors
+  const gradientMatch = gradientValue.match(/linear-gradient\((.*)\)$/)
+  if (!gradientMatch) {
+    debugLog('❌ Invalid gradient format')
+    resetGradientControls()
+    return
+  }
+
+  const gradientContent = gradientMatch[1]
+  debugLog('🎨 Gradient content:', gradientContent)
+
+  // Smart parsing that handles rgb() colors with commas
+  let angle = '90'
+  let color1 = '#ffffff'
+  let color2 = '#000000'
+  let position = '50'
+
+  // Extract angle first
+  const angleMatch = gradientContent.match(/^(\d+deg)/i)
+  let contentAfterAngle = gradientContent
+
+  if (angleMatch) {
+    angle = angleMatch[1].replace('deg', '')
+    contentAfterAngle = gradientContent.replace(angleMatch[0], '').replace(/^,\s*/, '')
+    debugLog('🎨 Found angle:', angle)
+  }
+
+  debugLog('🎨 Content after angle:', contentAfterAngle)
+
+  // Manual split that respects RGB parentheses
+  const parts = []
+  let currentPart = ''
+  let parenDepth = 0
+
+  for (let i = 0; i < contentAfterAngle.length; i++) {
+    const char = contentAfterAngle[i]
+
+    if (char === '(') {
+      parenDepth++
+    } else if (char === ')') {
+      parenDepth--
+    }
+
+    if (char === ',' && parenDepth === 0) {
+      parts.push(currentPart.trim())
+      currentPart = ''
+    } else {
+      currentPart += char
+    }
+  }
+
+  if (currentPart.trim()) {
+    parts.push(currentPart.trim())
+  }
+
+  debugLog('🎨 Smart split parts:', parts)
+
+  // Extract colors from parts
+  if (parts.length >= 1) {
+    const color1Match = parts[0].match(/^(.+?)(?:\s+(\d+)%)?$/)
+    if (color1Match) {
+      color1 = color1Match[1].trim()
+      debugLog('🎨 Parsed color1:', color1)
+    }
+  }
+
+  if (parts.length >= 2) {
+    const color2Match = parts[1].match(/^(.+?)(?:\s+(\d+)%)?$/)
+    if (color2Match) {
+      color2 = color2Match[1].trim()
+      if (color2Match[2]) {
+        position = color2Match[2]
+      }
+      debugLog('🎨 Parsed color2:', color2, 'position:', position)
+    }
+  }
+
+  debugLog('🎨 Final parsed gradient values:', { angle, color1, color2, position })
+
+  // Enable gradient toggle
+  const gradientToggle = document.getElementById('ote-gradient-toggle')
+  const gradientControls = document.getElementById('ote-gradient-controls')
+
+  if (gradientToggle) {
+    gradientToggle.checked = true
+    debugLog('🎨 Enabled gradient toggle')
+  }
+
+  if (gradientControls) {
+    gradientControls.style.display = 'block'
+    debugLog('🎨 Showed gradient controls')
+  }
+
+  // Populate gradient controls
+  populateGradientInputs(angle, color1, color2, position)
+}
+
+/**
+ * Populates individual gradient input fields
+ * @param {string} angle Gradient angle
+ * @param {string} color1 First color
+ * @param {string} color2 Second color  
+ * @param {string} position Position of second color
+ */
+function populateGradientInputs (angle, color1, color2, position) {
+  // Angle controls
+  const angleSlider = document.getElementById('ote-gradient-angle-slider')
+  const angleText = document.getElementById('ote-gradient-angle-text')
+
+  if (angleSlider) angleSlider.value = angle
+  if (angleText) angleText.value = angle
+
+  // Position controls  
+  const positionSlider = document.getElementById('ote-gradient-position-slider')
+  const positionText = document.getElementById('ote-gradient-position-text')
+
+  if (positionSlider) positionSlider.value = position
+  if (positionText) positionText.value = position
+
+  // Color 1 controls (main background color picker)
+  const color1Picker = document.getElementById('ote-bg-color-picker')
+  const color1Text = document.getElementById('ote-bg-color-text')
+
+  if (color1Picker && color1 && color1 !== '#ffffff') {
+    const hexColor1 = getHexColor(color1, '#ffffff')
+    color1Picker.value = hexColor1
+    debugLog('🎨 Set color1 picker to:', hexColor1, 'from gradient color1:', color1)
+  }
+
+  if (color1Text && color1 && color1 !== '#ffffff') {
+    color1Text.value = color1
+    debugLog('📝 Set color1 text to:', color1)
+  }
+
+  // Color 2 controls (second background color picker)
+  const color2Picker = document.getElementById('ote-bg-color2-picker')
+  const color2Text = document.getElementById('ote-bg-color2-text')
+
+  if (color2Picker && color2 && color2 !== '#000000') {
+    const hexColor2 = getHexColor(color2, '#000000')
+    color2Picker.value = hexColor2
+    debugLog('🎨 Set color2 picker to:', hexColor2, 'from gradient color2:', color2)
+  }
+
+  if (color2Text && color2 && color2 !== '#000000') {
+    color2Text.value = color2
+    debugLog('📝 Set color2 text to:', color2)
+  }
+
+  debugLog('🎨 Populated gradient controls:', { angle, color1, color2, position })
+}
+
+/**
+ * Resets gradient controls to default state
+ */
+function resetGradientControls () {
+  // Disable gradient toggle
+  const gradientToggle = document.getElementById('ote-gradient-toggle')
+  const gradientControls = document.getElementById('ote-gradient-controls')
+
+  if (gradientToggle) {
+    gradientToggle.checked = false
+  }
+
+  if (gradientControls) {
+    gradientControls.style.display = 'none'
+  }
+
+  // Reset gradient values to defaults
+  const angleSlider = document.getElementById('ote-gradient-angle-slider')
+  const angleText = document.getElementById('ote-gradient-angle-text')
+  const positionSlider = document.getElementById('ote-gradient-position-slider')
+  const positionText = document.getElementById('ote-gradient-position-text')
+  const color2Picker = document.getElementById('ote-bg-color2-picker')
+  const color2Text = document.getElementById('ote-bg-color2-text')
+
+  if (angleSlider) angleSlider.value = '90'
+  if (angleText) angleText.value = '90'
+  if (positionSlider) positionSlider.value = '50'
+  if (positionText) positionText.value = '50'
+  if (color2Picker) color2Picker.value = '#000000'
+  if (color2Text) color2Text.value = '#000000'
+
+  debugLog('🎨 Reset gradient controls to default')
 }

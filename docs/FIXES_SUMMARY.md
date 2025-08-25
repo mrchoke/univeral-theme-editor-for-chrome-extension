@@ -43,6 +43,64 @@ debugCheckbox.checked = debugMode
 - อัปเดต `.ote-body` ให้ใช้ `height: calc(100% - 60px)` แทน `max-height`
 - เปลี่ยน `overflow-y: auto` เป็น `overflow: hidden` สำหรับ container หลัก
 
+### 5. **Gradient Background Detection และ Population**
+**ปัญหา:** Toolbox ไม่สามารถตรวจสอบและแสดงค่า gradient background ที่มีอยู่ใน element ได้
+
+**รายละเอียดปัญหา:**
+- เมื่อเลือก element ที่มี `linear-gradient` background แล้ว toolbox ไม่แสดงค่า gradient
+- Gradient toggle ไม่เปิดขึ้นมา
+- ค่าสีที่สอง, มุม, และตำแหน่งไม่ถูก populate
+- แสดงเป็น solid color แทน
+
+**สาเหตุ:** 
+- `populateBackgroundInput()` เรียกแค่ `populateColorInput()` เท่านั้น ไม่ตรวจสอบ gradient
+- ไม่มีการดึงค่า `background-image` และ `background` properties  
+- ไม่มีฟังก์ชันสำหรับ parse linear-gradient string
+
+**การแก้ไข:**
+1. **เพิ่มการดึงค่า background properties** ใน `populateToolbox()`
+```javascript
+const backgroundImage = pick('background-image')
+const background = pick('background')
+```
+
+2. **ปรับปรุง `populateBackgroundInput()`** ให้รับพารามิเตอร์เพิ่มเติม
+```javascript
+function populateBackgroundInput (backgroundColor, backgroundImage, background) {
+  const gradientValue = backgroundImage || background
+  const hasGradient = gradientValue && gradientValue.includes('linear-gradient')
+  
+  if (hasGradient) {
+    populateGradientControls(gradientValue)
+  } else {
+    populateColorInput('background-color', backgroundColor)
+    resetGradientControls()
+  }
+}
+```
+
+3. **เพิ่มฟังก์ชัน `populateGradientControls()`** สำหรับ parse gradient string
+- แยกมุม (angle) จาก string เช่น `45deg`
+- แยกสีที่ 1 และสีที่ 2 (รองรับ hex, rgb, rgba)
+- แยกตำแหน่ง (position) เช่น `50%`, `75%`
+- เปิด gradient toggle และ controls
+- Populate ค่าลงใน input fields
+
+4. **เพิ่มฟังก์ชัน `resetGradientControls()`** สำหรับรีเซ็ต gradient controls
+
+**ตัวอย่างการทำงาน:**
+```css
+/* Element มี gradient นี้ */
+background: linear-gradient(45deg, #ff6b6b 0%, #4ecdc4 50%);
+
+/* จะถูก parse เป็น */
+- Gradient Toggle: ✅ เปิด
+- Angle: 45°
+- Color 1: #ff6b6b  
+- Color 2: #4ecdc4
+- Position: 50%
+```
+
 ### 4. **Selector Generation ลำดับ Element สลับกัน**
 **ปัญหา:** การสร้าง CSS selector มีการสลับลำดับ element ทำให้ selector ไม่ตรงกับ DOM hierarchy
 
@@ -94,10 +152,19 @@ if (parent && parent.id) {
 - ✅ `js/options-panel.js` - แก้ไขการอ่านค่า debug mode
 - ✅ `js/ui-components.js` - ย้ายปุ่ม Undo และเพิ่มการขยายขนาด  
 - ✅ `js/globals.js` - แก้ไข generateSelector() function ให้สร้าง selector ถูกต้อง
+- ✅ `js/toolbox-populators.js` - เพิ่มการตรวจสอบและ populate gradient controls
 - ✅ `css/style.css` - อัปเดต CSS สำหรับการขยายขนาด
 - ✅ `test/selector-fix-test.html` - ไฟล์ทดสอบการแก้ไข selector
 - ✅ `test/integration-test.html` - ทดสอบการทำงานร่วมกับ extension
 - ✅ `test/console-test.js` - ทดสอบ selector ผ่าน console
+- ✅ `test/gradient-population-test.html` - ทดสอบการ populate gradient
+- ✅ `test/final-gradient-test.html` - ทดสอบ gradient แบบ integration
+
+### **Gradient Background Detection:**
+1. เลือก element ที่มี gradient background
+2. ตรวจสอบว่า gradient toggle เปิดขึ้นมา
+3. ตรวจสอบค่า angle, colors, และ position ที่ถูก populate
+4. ลองปรับค่าและดูว่า gradient เปลี่ยนตามได้หรือไม่
 
 ### **Selector Generation:**
 1. เลือก element ใดก็ได้โดยกด Alt+Click
@@ -134,6 +201,7 @@ if (parent && parent.id) {
 ✅ **UI Layout:** ปุ่มต่างๆ ไม่ซ้อนกัน จัดเรียงเป็นระเบียบ  
 ✅ **User Experience:** ผู้ใช้สามารถปรับขนาด Toolbox ตามต้องการ  
 ✅ **Selector Generation:** สร้าง CSS selector ตามลำดับ DOM hierarchy ที่ถูกต้อง  
+✅ **Gradient Detection:** ตรวจสอบและแสดงค่า gradient background อย่างถูกต้อง  
 ✅ **Functionality:** ทุกฟีเจอร์ทำงานได้ปกติและเสถียร
 
 การปรับปรุงนี้ทำให้ Universal Theme Editor ใช้งานได้สะดวกและมีประสิทธิภาพมากขึ้น! 🎉
