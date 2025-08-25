@@ -371,13 +371,25 @@ function populateIndividualBorderControls (computedStyle, saved = {}, history = 
     const styleProp = `border-${side}-style`
     const colorProp = `border-${side}-color`
 
-    const width = (savedNorm && typeof savedNorm[widthProp] !== 'undefined') ? savedNorm[widthProp]
+    // Get width with proper defaults
+    let width = (savedNorm && typeof savedNorm[widthProp] !== 'undefined') ? savedNorm[widthProp]
       : (historyNorm && typeof historyNorm[widthProp] !== 'undefined') ? historyNorm[widthProp]
-        : computedStyle.getPropertyValue(widthProp) || '0px'
+        : computedStyle.getPropertyValue(widthProp)
 
-    const style = (savedNorm && typeof savedNorm[styleProp] !== 'undefined') ? savedNorm[styleProp]
+    // Normalize computed width values
+    if (!width || width === 'initial' || width === 'inherit' || width === 'medium') {
+      width = '0px'
+    }
+
+    // Get style with proper defaults
+    let style = (savedNorm && typeof savedNorm[styleProp] !== 'undefined') ? savedNorm[styleProp]
       : (historyNorm && typeof historyNorm[styleProp] !== 'undefined') ? historyNorm[styleProp]
-        : computedStyle.getPropertyValue(styleProp) || 'solid'
+        : computedStyle.getPropertyValue(styleProp)
+
+    // Normalize computed style values
+    if (!style || style === 'initial' || style === 'inherit' || style === 'none') {
+      style = 'solid'
+    }
 
     // Resolve color with clear priority
     const shorthandProp = `border-${side}`
@@ -392,7 +404,11 @@ function populateIndividualBorderControls (computedStyle, saved = {}, history = 
     }
 
     if (!finalColor) {
-      finalColor = computedStyle.getPropertyValue(colorProp)
+      const computedColor = computedStyle.getPropertyValue(colorProp)
+      // Normalize computed color values
+      if (computedColor && computedColor !== 'initial' && computedColor !== 'inherit' && computedColor !== 'currentcolor') {
+        finalColor = computedColor
+      }
     }
 
     finalColor = finalColor || '#000000'
@@ -403,7 +419,7 @@ function populateIndividualBorderControls (computedStyle, saved = {}, history = 
     const colorPicker = document.getElementById(`ote-border-${side}-color-picker`)
 
     if (widthText) widthText.value = width
-    if (widthSlider) widthSlider.value = extractNumericValue(width)
+    if (widthSlider) widthSlider.value = extractNumericValue(width) || 0
     if (styleSelect) styleSelect.value = style
     if (colorPicker) {
       debugLog('🔍 individual side color raw:', finalColor, 'for side:', side)
@@ -413,15 +429,27 @@ function populateIndividualBorderControls (computedStyle, saved = {}, history = 
     }
   })
 
-  // Populate individual corners
+  // Populate individual corners with saved/history support
   corners.forEach(corner => {
-    const radius = computedStyle.getPropertyValue(`border-${corner}-radius`) || '0px'
+    const radiusProp = `border-${corner}-radius`
+
+    // Get radius value from saved/history first, then computed
+    let radius = (savedNorm && typeof savedNorm[radiusProp] !== 'undefined') ? savedNorm[radiusProp]
+      : (historyNorm && typeof historyNorm[radiusProp] !== 'undefined') ? historyNorm[radiusProp]
+        : computedStyle.getPropertyValue(radiusProp)
+
+    // Normalize computed radius values  
+    if (!radius || radius === 'initial' || radius === 'inherit') {
+      radius = '0px'
+    }
 
     const radiusText = document.getElementById(`ote-border-${corner}-radius-text`)
     const radiusSlider = document.getElementById(`ote-border-${corner}-radius-slider`)
 
     if (radiusText) radiusText.value = radius
-    if (radiusSlider) radiusSlider.value = extractNumericValue(radius)
+    if (radiusSlider) radiusSlider.value = extractNumericValue(radius) || 0
+
+    debugLog(`🔍 border-${corner}-radius:`, radius)
   })
 }
 
